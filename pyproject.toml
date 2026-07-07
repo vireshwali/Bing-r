@@ -1,0 +1,47 @@
+[project]
+name = "Bing-r"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "alembic>=1.18.5",
+    "httpx>=0.28.1",
+    "lxml>=6.1.1",
+    "m3u8>=6.0.0",
+    "orjson>=3.11.9",
+    "pyside6>=6.11.1",
+    "pyside6-ds>=4.7",
+    "python-dotenv>=1.1.0",
+    "sqlalchemy[asyncio]>=2.0.51",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.15.1",
+    "ruff>=0.15.20",
+]
+
+[tool.pyside6-project]
+files = [".", "src/bingr/main.py", "src/bingr/services/qmldir", "src/bingr/services/processM3UFilesService.py", "src/bingr/ui/App.qml", "src/bingr/ui/Screen01.ui.qml", "src/bingr/ui/Theme.qml", "src/bingr/ui/qmldir"]
+
+[tool.uv]
+managed = true
+package = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "external_http: tests that make HTTP requests to external services (e.g. iptv-org API)",
+]
+
+[tool.coverage.run]
+source = ["src/bingr"]
+omit = ["*/poc/*", "*/ui/*", "*/qml_resources*"]
+
+
