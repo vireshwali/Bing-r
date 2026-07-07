@@ -1,7 +1,8 @@
 [project]
 name = "Bing-r"
 version = "0.1.0"
-description = "Add your description here"
+description = "A modern desktop IPTV and media player/manager built with Python, PySide6, and Qt 6.11 Quick/QML"
+license = "GPL-3.0-or-later"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

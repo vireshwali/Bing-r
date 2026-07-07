@@ -1,4 +1,38 @@
-                    GNU GENERAL PUBLIC LICENSE
+Bing-r - IPTV and Media Player/Manager
+Copyright (C) 2026 The Bing-r Project
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Additional Permissions under GNU GPL version 3 Section 7:
+
+1. Qt Commercial Linking Exception
+   If you have acquired a commercial license for Qt or PySide6 from
+   The Qt Company (or its affiliates), you may link this program
+   with Qt or PySide6 under the terms of that commercial license.
+   This additional permission does not apply to any other version of
+   Qt or PySide6.
+
+2. Library-Use Exception
+   You may use the Bing-r Python packages located in the
+   src/bingr/services/, src/bingr/db/, and src/bingr/common/
+   directories (the "Library") as a library imported by a program
+   that is not itself licensed under the GPL, provided that:
+   a) The source code of the Library (including any modifications)
+      is made available under this GPLv3 + additional permissions,
+      and
+   b) The non-GPL program does not incorporate, distribute, or
+      convey modified versions of the Library's source code.
+
+   If you modify the Library itself, those modifications remain
+   under GPLv3. You may remove these additional permissions from
+   your modified copy under GPLv3 section 7.
+
+The full text of the GNU General Public License follows.
+
+                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
