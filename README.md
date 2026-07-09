@@ -31,4 +31,10 @@ ruff check . --fix
 
 ## License
 
-GNU General Public License v3.0
+GNU General Public License v3.0 with additional permissions under §7.
+See [LICENSE](LICENSE) for the full text.
+
+## Attribution
+
+This application uses data from iptv-org (see [ATTRIBUTION.md](ATTRIBUTION.md))
+licensed under CC BY 4.0.
