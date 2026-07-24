@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="playlist.svg">ui/images/playlist.svg</file>
+        <file alias="help.svg">ui/images/help.svg</file>
+        <file alias="heart.svg">ui/images/heart.svg</file>
+        <file alias="television.svg">ui/images/television.svg</file>
+        <file alias="user.svg">ui/images/user.svg</file>
+        <file alias="settings.svg">ui/images/settings.svg</file>
+        <file alias="search.svg">ui/images/search.svg</file>
+        <file alias="home.svg">ui/images/home.svg</file>
+        <file alias="arrows-collapse.svg">ui/images/arrows-collapse.svg</file>
+        <file alias="arrows-open.svg">ui/images/arrows-open.svg</file>
+        <file alias="help-circle.svg">ui/images/help-circle.svg</file>
+        <file alias="plus-circle.svg">ui/images/plus-circle.svg</file>
+        <file alias="files-size-64.svg">ui/images/files-size-64.svg</file>
+        <file alias="checks.svg">ui/images/checks.svg</file>
+        <file alias="play.svg">ui/images/play.svg</file>
+        <file alias="arrow-fat-line-right.svg">ui/images/arrow-fat-line-right.svg</file>
+        <file alias="arrow-fat-line-left.svg">ui/images/arrow-fat-line-left.svg</file>
+        <file alias="globe.svg">ui/images/globe.svg</file>
+        <file alias="heart-filled.svg">ui/images/heart-filled.svg</file>
+        <file alias="user-sound.svg">ui/images/user-sound.svg</file>
+        <file alias="funnel.svg">ui/images/funnel.svg</file>
+    </qresource>
+</RCC>
