@@ -109,7 +109,7 @@ Project {
     qt6Project: true
 
     /* List of plugin directories passed to QML runtime */
-    importPaths: [".", "src", "src/bingr", "src/bingr/services", "src/bingr/ui", "src/bingr/ui/Components", "src/bingr/ui/Screens"]
+    importPaths: [".", "src", "src/bingr", "src/bingr/controllers", "src/bingr/services", "src/bingr/ui", "src/bingr/ui_models", "src/bingr/ui/Components", "src/bingr/ui/Screens"]
 
     /* Required for deployment */
     targetDirectory: "./build"

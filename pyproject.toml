@@ -1,10 +1,37 @@
 [project]
 name = "Bing-r"
-version = "0.1.0"
-description = "A modern desktop IPTV and media player/manager built with Python, PySide6, and Qt 6.11 Quick/QML"
-license = "GPL-3.0-or-later"
+version = "1.4.2"
+description = "A modern desktop IPTV and media player/manager application built with Python, PySide6, and Qt Quick/QML. Designed as a high-performance, desktop-native media client focused on Live TV, VOD, library management, playback, discovery, and community-style metadata/reviews."
 readme = "README.md"
 requires-python = ">=3.12"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Viresh Wali", email = "vireshwali@gmail.com"}
+]
+maintainers = [
+    {name = "Viresh Wali", email = "vireshwali@gmail.com"}
+]
+keywords = [
+    "iptv",
+    "media-player",
+    "live-tv",
+    "m3u",
+    "epg",
+    "qt",
+    "pyside6",
+    "desktop"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Video :: Capture",
+    "Topic :: Multimedia :: Video :: Display",
+]
 dependencies = [
     "aiosqlite>=0.22.1",
     "alembic>=1.18.5",
@@ -18,8 +45,16 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.51",
 ]
 
+[project.urls]
+Homepage = "https://github.com/vireshwali/Bing-r"
+Repository = "https://github.com/vireshwali/Bing-r"
+Issues = "https://github.com/vireshwali/Bing-r/issues"
+Discussions = "https://github.com/vireshwali/Bing-r/discussions"
+Changelog = "https://github.com/vireshwali/Bing-r/releases"
+
 [dependency-groups]
 dev = [
+    "basedpyright>=1.39.9",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
@@ -28,8 +63,105 @@ dev = [
 ]
 
 [tool.pyside6-project]
-files = [".", "src/bingr/main.py", "src/bingr/services/qmldir", "src/bingr/services/processM3UFilesService.py", "src/bingr/ui/App.qml", "src/bingr/ui/Screen01.ui.qml", "src/bingr/ui/Theme.qml", "src/bingr/ui/qmldir"]
-
+files = [
+    "src/bingr/__init__.py",
+    "src/bingr/common/__init__.py",
+    "src/bingr/common/cache.py",
+    "src/bingr/common/config.py",
+    "src/bingr/common/constants.py",
+    "src/bingr/common/eventBus.py",
+    "src/bingr/common/eventTypes.py",
+    "src/bingr/common/exceptions.py",
+    "src/bingr/common/logging.py",
+    "src/bingr/controllers/AddNewSourcesController.qml",
+    "src/bingr/controllers/ChannelsController.qml",
+    "src/bingr/controllers/SplashScreenController.qml",
+    "src/bingr/controllers/StatusBarController.qml",
+    "src/bingr/controllers/__init__.py",
+    "src/bingr/controllers/addNewSourcesController.py",
+    "src/bingr/controllers/channelsController.py",
+    "src/bingr/controllers/qmldir",
+    "src/bingr/controllers/splashScreenController.py",
+    "src/bingr/controllers/statusBarController.py",
+    "src/bingr/db/__init__.py",
+    "src/bingr/db/alembic/__init__.py",
+    "src/bingr/db/alembic/env.py",
+    "src/bingr/db/alembic/versions/001_create_all_tables.py",
+    "src/bingr/db/alembic/versions/__init__.py",
+    "src/bingr/db/manager.py",
+    "src/bingr/db/migrate.py",
+    "src/bingr/db/models.py",
+    "src/bingr/db/session.py",
+    "src/bingr/main.py",
+    "src/bingr/qml_resources.py",
+    "src/bingr/qml_resources.qrc",
+    "src/bingr/services/M3UFilesProcessor.qml",
+    "src/bingr/services/__init__.py",
+    "src/bingr/services/auditService.py",
+    "src/bingr/services/channelsManagementService.py",
+    "src/bingr/services/epgService.py",
+    "src/bingr/services/helpers/__init__.py",
+    "src/bingr/services/helpers/enrichmentHelper.py",
+    "src/bingr/services/helpers/parsingHelper.py",
+    "src/bingr/services/importerService.py",
+    "src/bingr/services/libraryService.py",
+    "src/bingr/services/processM3UFilesService.py",
+    "src/bingr/services/qmldir",
+    "src/bingr/services/searchService.py",
+    "src/bingr/services/systemHealthMonitorService.py",
+    "src/bingr/ui/App.qml",
+    "src/bingr/ui/Components/CarouselArrow.ui.qml",
+    "src/bingr/ui/Components/ChannelsGrid.ui.qml",
+    "src/bingr/ui/Components/ChannelsGridCard.ui.qml",
+    "src/bingr/ui/Components/ChannelsHeroSection.ui.qml",
+    "src/bingr/ui/Components/ChannelsTopNav.ui.qml",
+    "src/bingr/ui/Components/CollapseLeftNavButton.ui.qml",
+    "src/bingr/ui/Components/CustomTextInputField.ui.qml",
+    "src/bingr/ui/Components/CustomTextInputFieldWithIcon.ui.qml",
+    "src/bingr/ui/Components/IconButton.ui.qml",
+    "src/bingr/ui/Components/IconButtonWithText.ui.qml",
+    "src/bingr/ui/Components/LeftNavMenuButton.ui.qml",
+    "src/bingr/ui/Components/NormalButton.ui.qml",
+    "src/bingr/ui/Components/OpenLeftNavButton.ui.qml",
+    "src/bingr/ui/Components/SeparatorRect.ui.qml",
+    "src/bingr/ui/Components/TagText.ui.qml",
+    "src/bingr/ui/Components/TopNavComboBox.ui.qml",
+    "src/bingr/ui/Components/qmldir",
+    "src/bingr/ui/Constants.qml",
+    "src/bingr/ui/LeftNav.ui.qml",
+    "src/bingr/ui/Screen01.ui.qml",
+    "src/bingr/ui/Screens/AddChannels.ui.qml",
+    "src/bingr/ui/Screens/Channels.ui.qml",
+    "src/bingr/ui/Screens/Channels1.ui.qml",
+    "src/bingr/ui/Screens/Channels2.ui.qml",
+    "src/bingr/ui/Screens/Channels3.ui.qml",
+    "src/bingr/ui/Screens/Channels4.ui.qml",
+    "src/bingr/ui/Screens/Channels5.ui.qml",
+    "src/bingr/ui/Screens/Favourites.ui.qml",
+    "src/bingr/ui/Screens/Home.ui.qml",
+    "src/bingr/ui/Screens/Playlists.ui.qml",
+    "src/bingr/ui/Screens/qmldir",
+    "src/bingr/ui/Splashscreen.qml",
+    "src/bingr/ui/StatusBar.ui.qml",
+    "src/bingr/ui/Theme.qml",
+    "src/bingr/ui/qmldir",
+    "src/bingr/ui_models/CategoryFilterViewModel.qml",
+    "src/bingr/ui_models/ChannelsGridViewModel.qml",
+    "src/bingr/ui_models/ChannelsHeroViewModel.qml",
+    "src/bingr/ui_models/CountryFilterViewModel.qml",
+    "src/bingr/ui_models/QualityFilterViewModel.qml",
+    "src/bingr/ui_models/__init__.py",
+    "src/bingr/ui_models/categoryFilterViewModel.py",
+    "src/bingr/ui_models/channelDataModel.py",
+    "src/bingr/ui_models/channelsGridViewModel.py",
+    "src/bingr/ui_models/channelsHeroViewModel.py",
+    "src/bingr/ui_models/countryFilterViewModel.py",
+    "src/bingr/ui_models/filterOptionModel.py",
+    "src/bingr/ui_models/qmldir",
+    "src/bingr/ui_models/qualityFilterViewModel.py",
+    "src/bingr/ui_models/sourcesProcessingStatusModel.py",
+    "src/bingr/ui_models/sourcesProcessingStatusViewModel.py",
+]
 [tool.uv]
 managed = true
 package = true

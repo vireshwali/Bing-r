@@ -1,4 +1,7 @@
-# Python
+# Local config overrides
+config/.env.local
+
+# Python-generated files
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -17,11 +20,13 @@ uv.lock
 *.swo
 *~
 .DS_Store
+TODOs.md
 
 # Qt / QML
 *.qmlc
 *.jsc
 *.qsb
+*.qsdt
 Generated/
 build/
 
@@ -45,3 +50,10 @@ todo*
 
 # History
 .history/
+
+# Runtime data
+workspace/
+db/
+
+# Test runtime data (auto-created, gitignored)
+_tests_runtime/
