@@ -21,6 +21,7 @@ uv.lock
 *~
 .DS_Store
 TODOs.md
+*poc
 
 # Qt / QML
 *.qmlc
@@ -57,3 +58,6 @@ db/
 
 # Test runtime data (auto-created, gitignored)
 _tests_runtime/
+.qtcreator
+Bing-r.qmlproject.qtds
+build_report.xml
