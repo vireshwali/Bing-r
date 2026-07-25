@@ -61,3 +61,4 @@ _tests_runtime/
 .qtcreator
 Bing-r.qmlproject.qtds
 build_report.xml
+/bingr
