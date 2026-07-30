@@ -116,7 +116,7 @@ Project {
 
     qdsVersion: "4.8"
 
-    quickVersion: "6.11"
+    quickVersion: "6.8"
 
     /* If any modules the project imports require widgets (e.g. QtCharts), widgetApp must be true */
     widgetApp: true
