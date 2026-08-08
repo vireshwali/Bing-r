@@ -60,8 +60,8 @@ def _xdgStateHome() -> Path:
 
 
 def _projectRoot() -> Path:
-    """Fallback for local dev: three levels up from this file."""
-    return Path(__file__).resolve().parent.parent.parent
+    """Fallback for local dev: four levels up from this file (src/bingr/common/config.py)."""
+    return Path(__file__).resolve().parent.parent.parent.parent
 
 
 class Config:
