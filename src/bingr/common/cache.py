@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 import orjson  # pyright: ignore[reportMissingModuleSource]
 
-from bingr.common.config import get_config
+from bingr.common.config import getConfig
 from bingr.common.constants import API_FILES, KEYS
 
 logger = logging.getLogger(__name__)
@@ -59,12 +59,12 @@ class FileDataCache:
         self._store: dict[str, list[dict[str, Any]]] = {}
 
     @property
-    def _api_dir(self) -> Path:
-        return get_config().get(KEYS.WORKSPACE_PATH) / "api"
+    def _apiDir(self) -> Path:
+        return getConfig().workspacePath() / "api"
 
     @property
-    def _ttl_days(self) -> int:
-        return get_config().get_int(KEYS.FILE_CACHE_TTL, 7)
+    def _ttlDays(self) -> int:
+        return getConfig().getInt(KEYS.FILE_CACHE_TTL, 7)
 
     # ── internal helpers ────────────────────────────────────────
 
@@ -84,17 +84,17 @@ class FileDataCache:
 
     def ensure(self, name: str):
         """Download the API file *name* if it is missing or stale on disk."""
-        local_name, url = API_FILES[name]
-        path = self._api_dir / local_name
+        localName, url = API_FILES[name]
+        path = self._apiDir / localName
         if path.exists():
             age = datetime.now() - datetime.fromtimestamp(path.stat().st_mtime)
-            if age < timedelta(days=self._ttl_days):
-                logger.debug("cache fresh: %s (%s old)", local_name, age)
+            if age < timedelta(days=self._ttlDays):
+                logger.debug("cache fresh: %s (%s old)", localName, age)
                 return
-            logger.info("cache stale: %s (%s old)", local_name, age)
+            logger.info("cache stale: %s (%s old)", localName, age)
         self._download(url, path)
 
-    def ensure_all(self):
+    def ensureAll(self):
         """Ensure every known API file is cached on disk."""
         for name in API_FILES:
             self.ensure(name)
@@ -105,8 +105,8 @@ class FileDataCache:
             logger.debug("cache hit: %s (%d records)", name, len(self._store[name]))
             return self._store[name]
 
-        local_name = API_FILES[name][0]
-        path = self._api_dir / local_name
+        localName = API_FILES[name][0]
+        path = self._apiDir / localName
         if not path.exists():
             logger.warning("cache file not found: %s (returning [] for %s)", path, name)
             self._store[name] = []
@@ -121,7 +121,7 @@ class FileDataCache:
             return []
 
         self._store[name] = data
-        logger.debug("loaded %s: %d records", local_name, len(data))
+        logger.debug("loaded %s: %d records", localName, len(data))
         return data
 
     def clear(self):
@@ -144,29 +144,29 @@ def initialize(cfg: Any) -> None:
     global _initialized
     if _initialized:
         return
-    api_dir = cfg.get(KEYS.WORKSPACE_PATH) / "api"
-    api_dir.mkdir(parents=True, exist_ok=True)
-    get_memory_cache()
-    get_file_cache()
+    apiDir = cfg.workspacePath() / "api"
+    apiDir.mkdir(parents=True, exist_ok=True)
+    getMemoryCache()
+    getFileCache()
     _initialized = True
-    logger.info("Cache initialized — memory + file (%s)", api_dir)
+    logger.info("Cache initialized — memory + file (%s)", apiDir)
 
 
 # ── singleton accessors ──────────────────────────────────────────
 
-_file_cache: FileDataCache | None = None
-_memory_cache: MemoryCache | None = None
+_fileCache: FileDataCache | None = None
+_memoryCache: MemoryCache | None = None
 
 
-def get_file_cache() -> FileDataCache:
-    global _file_cache
-    if _file_cache is None:
-        _file_cache = FileDataCache()
-    return _file_cache
+def getFileCache() -> FileDataCache:
+    global _fileCache
+    if _fileCache is None:
+        _fileCache = FileDataCache()
+    return _fileCache
 
 
-def get_memory_cache(ttl: int = 300) -> MemoryCache:
-    global _memory_cache
-    if _memory_cache is None:
-        _memory_cache = MemoryCache(ttl=ttl)
-    return _memory_cache
+def getMemoryCache(ttl: int = 300) -> MemoryCache:
+    global _memoryCache
+    if _memoryCache is None:
+        _memoryCache = MemoryCache(ttl=ttl)
+    return _memoryCache

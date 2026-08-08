@@ -18,30 +18,40 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 from bingr import qml_resources  # type: ignore # noqa: F401
-from bingr.common.cache import initialize as init_cache
-from bingr.common.config import get_config
-from bingr.common.constants import KEYS
-from bingr.common.logging import setup_logging
+from bingr.common.cache import initialize as initCache
+from bingr.common.config import getConfig
+from bingr.common.logging import setupLogging
 from bingr.controllers.addNewSourcesController import AddNewSourcesController  # type: ignore # noqa: F401
 from bingr.controllers.channelsController import ChannelsController  # type: ignore # noqa: F401
+from bingr.controllers.favoritesController import FavoritesController  # type: ignore # noqa: F401
+from bingr.controllers.homeController import HomeController  # type: ignore # noqa: F401
+from bingr.controllers.mainPlayerController import (  # type: ignore  # noqa: F401
+    MainPlayerController,
+    MpvFramebufferObject,
+)
+from bingr.controllers.settingsController import SettingsController  # type: ignore # noqa: F401
 from bingr.controllers.splashScreenController import SplashScreenController  # type: ignore # noqa: F401
 from bingr.controllers.statusBarController import StatusBarController  # type: ignore  # noqa: F401
-from bingr.db.manager import DatabaseManager
+from bingr.db.dbManager import DatabaseManager
+from bingr.jobs.heroChannelsPeriodicRefreshJob import HeroChannelsPeriodicRefreshJob
 from bingr.services.processM3UFilesService import M3UFilesProcessor  # type: ignore # noqa: F401
 from bingr.services.systemHealthMonitorService import SystemHealthMonitorService  # type: ignore
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("bingr.main")
 
-MAX_WAIt_TIME_SECONDS = 4.0
+MAX_WAIT_TIME_SECONDS = 4.0
+BACKGROUND_JOBS_START_DELAY_MINUTES = 1
 
-_system_health: SystemHealthMonitorService | None = None
+_systemHealth: SystemHealthMonitorService | None = None
 
-app_engine: QQmlApplicationEngine | None = None
+_activeJobs: list[Any] = []
 
-project_root = Path(__file__).parent.parent.parent
+appEngine: QQmlApplicationEngine | None = None
+
+projectRoot = Path(__file__).parent.parent.parent
 
 if "__compiled__" in globals():
-    project_root = Path(__file__).parent
+    projectRoot = Path(__file__).parent
 
 if TYPE_CHECKING:
     SplashScreenControllerType = Any
@@ -51,109 +61,141 @@ else:
     StatusBarControllerType = "StatusBarController"
 
 
-async def _boot_app(boot_start):
-    splash_ctrl: SplashScreenControllerType = None
-    if not app_engine:
+def startJobs() -> None:
+    """Start all periodic background jobs (schedulers only — they emit event bus signals).
+
+    Jobs are stored in _activeJobs to keep them alive for the app lifetime;
+    each job exposes stop() for graceful shutdown.
+    """
+
+    _activeJobs.append(HeroChannelsPeriodicRefreshJob())
+    logger.info("All periodic jobs started.")
+
+
+def stopJobs() -> None:
+    """Gracefully stop all running jobs on app shutdown."""
+    while _activeJobs:
+        job = _activeJobs.pop()
+        try:
+            job.stop()
+        except Exception as e:
+            logger.warning("Error stopping job %s: %s", type(job).__name__, e)
+
+
+async def _bootApp(bootStart):
+    splashCtrl: SplashScreenControllerType = None
+    if not appEngine:
         logger.critical("appEngine is not created — cannot boot.")
         return
     else:
-        splash_ctrl: SplashScreenControllerType = app_engine.singletonInstance(
+        splashCtrl: SplashScreenControllerType = appEngine.singletonInstance(
             "bingr.controllers", "SplashScreenController"
         )
 
     try:
         # sleep foa bit to let the splash screen render
-        splash_ctrl.publishProgressMsg("Starting application...")
+        splashCtrl.publishProgressMsg("Starting application...")
         await asyncio.sleep(0.5)
 
-        splash_ctrl.publishProgressMsg("Loading application configurations.....")
+        splashCtrl.publishProgressMsg("Loading application configurations.....")
         await asyncio.sleep(0.5)
-        cfg = get_config()
+        cfg = getConfig()
 
-        # splash_ctrl.publishProgressMsg("Setting  logging…")
+        # splashCtrl.publishProgressMsg("Setting  logging…")
         await asyncio.sleep(0.5)
-        setup_logging()
+        setupLogging()
 
-        splash_ctrl.publishProgressMsg("Initializing system caches....")
+        splashCtrl.publishProgressMsg("Initializing system caches....")
         await asyncio.sleep(0.5)
-        init_cache(cfg)
+        initCache(cfg)
 
-        splash_ctrl.publishProgressMsg("Preparing databases and sources....")
+        splashCtrl.publishProgressMsg("Preparing databases and sources....")
         await asyncio.sleep(0.5)
 
-        db_path = cfg.get(KEYS.DB_PATH)
-        if db_path:
-            Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-            DatabaseManager.initialize(db_path)
-        else:
-            ws = cfg.get(KEYS.WORKSPACE_PATH)
-            if ws:
-                db_path = str(Path(ws) / "db" / "bingr.db")
-                Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-                DatabaseManager.initialize(db_path)
+        dbPath = cfg.dbPath()
+        dbPath.parent.mkdir(parents=True, exist_ok=True)
+        DatabaseManager.initialize(str(dbPath))
 
-        status_ctrl: StatusBarControllerType = app_engine.singletonInstance(
-            "bingr.controllers", "StatusBarController"
-        )
-        # _ac_mod.set_status_controller(status_ctrl)
+        statusCtrl: StatusBarControllerType = appEngine.singletonInstance("bingr.controllers", "StatusBarController")
+        # _ac_mod.set_status_controller(statusCtrl)
 
-        global _system_health
-        workspace = cfg.get(KEYS.WORKSPACE_PATH) or project_root
-        _system_health = SystemHealthMonitorService(app_engine, workspace)
+        global _systemHealth
+        workspace = cfg.workspacePath()
+        _systemHealth = SystemHealthMonitorService(appEngine, workspace)
 
-        splash_ctrl.publishProgressMsg("Starting application interface...")
+        splashCtrl.publishProgressMsg("Starting application interface...")
 
-        elapsed = time.monotonic() - boot_start
-        if elapsed < MAX_WAIt_TIME_SECONDS:
+        elapsed = time.monotonic() - bootStart
+        if elapsed < MAX_WAIT_TIME_SECONDS:
             await asyncio.sleep(4.0 - elapsed)
 
-        app_engine.loadFromModule("ui", "App")
+        appEngine.loadFromModule("ui", "App")
 
         # refresh the counts and start the timer to refresh them periodically
-        status_ctrl.refreshCounts()
-        status_ctrl.startCountTimer()
+        statusCtrl.refreshCounts()
+        statusCtrl.startCountTimer()
 
-        for obj in app_engine.rootObjects():
+        for obj in appEngine.rootObjects():
             if obj.objectName() == "splashWindow":
                 obj.close()  # type: ignore
                 break
 
-        _system_health.run_all_checkd_on_demand()
+        _systemHealth.runAllChecksOnDemand()
+
+        # Delay periodic jobs until the app has fully settled (1 minute)
+        logger.info(
+            "Periodic background scheduling will start in %s minute(s)",
+            BACKGROUND_JOBS_START_DELAY_MINUTES,
+        )
+        QTimer.singleShot(BACKGROUND_JOBS_START_DELAY_MINUTES * 60 * 1000, startJobs)
 
         logger.info("Bingr initialized successfully — ready")
 
     except Exception as e:
-        splash_ctrl.publishProgressMsg(f"Initialization failed: {e}")
+        splashCtrl.publishProgressMsg(f"Initialization failed: {e}")
         logger.critical("Failed to initialize: %s", e, exc_info=True)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Application entry point — can be called from gui-scripts or __main__."""
     app = QGuiApplication(sys.argv)
+    cfg = getConfig()  # noqa: F841
 
-    async def _shutdown_db():
+    async def _shutdownDb():
         logger.info("Shutting down database engine …")
         await DatabaseManager.shutdown()
 
-    app.aboutToQuit.connect(lambda: asyncio.ensure_future(_shutdown_db()))
+    app.aboutToQuit.connect(lambda: asyncio.ensure_future(_shutdownDb()))
+    app.aboutToQuit.connect(stopJobs)
 
-    app_engine = QQmlApplicationEngine()
+    appEngineLocal = QQmlApplicationEngine()
 
-    if app_engine:
-        app_engine.addImportPath(Path(__file__).resolve().parent)
+    if appEngineLocal:
+        appEngineLocal.addImportPath(Path(__file__).resolve().parent)
 
-    os.environ["QT_QUICK_CONTROLS_CONF"] = str(project_root / "qtquickcontrols2.conf")
+    # Use setdefault so an already-set env (e.g. Flatpak finish-args
+    # --env=QT_QUICK_CONTROLS_CONF=/app/share/bingr/) is not overridden.
+    os.environ.setdefault("QT_QUICK_CONTROLS_CONF", str(projectRoot / "qtquickcontrols2.conf"))
 
-    if app_engine:
-        app_engine.loadFromModule("ui", "Splashscreen")
+    if appEngineLocal:
+        appEngineLocal.loadFromModule("ui", "SplashScreen")
 
-    if not app_engine or not app_engine.rootObjects():
+    if not appEngineLocal or not appEngineLocal.rootObjects():
         sys.exit(-1)
 
-    def _schedule_boot():
+    # Make appEngine available to _bootApp via closure
+    global appEngine
+    appEngine = appEngineLocal
+
+    def _scheduleBoot():
         asyncio.create_task(  # noqa: RUF006
-            _boot_app(time.monotonic())
+            _bootApp(time.monotonic())
         )
 
-    QTimer.singleShot(0, _schedule_boot)
+    QTimer.singleShot(0, _scheduleBoot)
 
     QtAsyncio.run(quit_qapp=True, handle_sigint=True)
+
+
+if __name__ == "__main__":
+    main()
