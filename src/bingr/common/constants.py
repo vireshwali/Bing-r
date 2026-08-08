@@ -2,8 +2,7 @@
 
 
 class KEYS:
-    WORKSPACE_PATH = "workspace.path"
-    DB_PATH = "db.path"
+    DB_NAME = "db.name"
     LOG_LEVEL = "log.level"
     FILE_CACHE_TTL = "file.cache.ttl"
     DOWNLOAD_TIMEOUT = "download.timeout"
