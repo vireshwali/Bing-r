@@ -2,7 +2,7 @@ import QmlProject
 
 Project {
     mainFile: "src/bingr/ui/App.qml"
-    mainUiFile: "src/bingr/ui/Screen01.ui.qml"
+    mainUiFile: "src/bingr/ui/MainAppScreen.ui.qml"
 
     /* Include .qml, .js, and image files from current directory and subdirectories */
     QmlFiles {
@@ -116,7 +116,7 @@ Project {
 
     qdsVersion: "4.8"
 
-    quickVersion: "6.8"
+    quickVersion: "6.11"
 
     /* If any modules the project imports require widgets (e.g. QtCharts), widgetApp must be true */
     widgetApp: true
