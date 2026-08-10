@@ -34,6 +34,8 @@ build/
 # Environment
 .env
 *.env.local
+# config/.env is intentionally tracked (DB name + log level only, no paths)
+!config/.env
 
 # Testing
 .pytest_cache/
@@ -55,6 +57,7 @@ todo*
 # Runtime data
 workspace/
 db/
+logs/
 
 # Test runtime data (auto-created, gitignored)
 _tests_runtime/
@@ -63,3 +66,10 @@ Bing-r.qmlproject.qtds
 build_report.xml
 /bingr
 docs/superpowers
+
+# Flatpak build artifacts
+flatpak-build/
+.flatpak-builder/
+flatpak/requirements.txt
+flatpak/LOCAL-BUILD.md
+.opencode

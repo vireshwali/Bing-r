@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.github.vireshwali.Bing-r</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>Bing-r</name>
+  <summary>A modern desktop IPTV and media player</summary>
+  <description>
+    <p>
+      Bingr is a high-performance desktop media client for Live TV, VOD,
+      library management, and playback. Import M3U playlists, browse channels
+      by category and country, and watch with hardware-accelerated mpv playback.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>M3U playlist import from files and URLs</li>
+      <li>Channel browsing with category and country filters</li>
+      <li>Hardware-accelerated playback via mpv</li>
+      <li>Favorites and visit tracking</li>
+      <li>Dark theme with modern Qt Quick UI</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">com.github.vireshwali.Bing-r.desktop</launchable>
+  <url type="homepage">https://github.com/vireshwali/Bing-r</url>
+  <url type="bugtracker">https://github.com/vireshwali/Bing-r/issues</url>
+  <developer id="com.github.vireshwali">
+    <name>Viresh Wali</name>
+  </developer>
+  <content_rating type="oars-1.1"/>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <display_length compare="ge">768</display_length>
+  </supports>
+  <releases>
+    <release version="1.4.2" date="2026-08-08">
+      <description>
+        <p>Flatpak packaging and home screen improvements.</p>
+      </description>
+    </release>
+  </releases>
+</component>
