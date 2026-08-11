@@ -8,10 +8,10 @@ class BingrError(Exception):
 class ProcessingError(BingrError):
     """Base for all import/processing pipeline errors."""
 
-    default_reason = "processing_error"
+    defaultReason = "processing_error"
 
     def __init__(self, message, *, reason="", details=None):
-        self.reason = reason or self.default_reason
+        self.reason = reason or self.defaultReason
         self.details = details or {}
         super().__init__(message)
 
@@ -19,7 +19,7 @@ class ProcessingError(BingrError):
 class MissingSourceParamsError(ProcessingError):
     """Neither m3u_path nor url provided."""
 
-    default_reason = "missing_source_params"
+    defaultReason = "missing_source_params"
 
     def __init__(self):
         super().__init__("Either m3u_path or url must be provided")
@@ -28,7 +28,7 @@ class MissingSourceParamsError(ProcessingError):
 class SourceFileNotFoundError(ProcessingError):
     """M3U file does not exist on disk."""
 
-    default_reason = "file_not_found"
+    defaultReason = "file_not_found"
 
     def __init__(self, path):
         super().__init__(
@@ -40,7 +40,7 @@ class SourceFileNotFoundError(ProcessingError):
 class InvalidM3UFileError(ProcessingError):
     """File is not .m3u or .m3u8."""
 
-    default_reason = "invalid_m3u_file"
+    defaultReason = "invalid_m3u_file"
 
     def __init__(self, name, suffix):
         super().__init__(
@@ -52,15 +52,15 @@ class InvalidM3UFileError(ProcessingError):
 class SourceAlreadyImportedError(ProcessingError):
     """Source record already exists in DB — the true duplicate check."""
 
-    default_reason = "source_already_imported"
+    defaultReason = "source_already_imported"
 
-    def __init__(self, source_id, source_name, col_label, input_key):
+    def __init__(self, source_id, source_name, colLabel, inputKey):
         super().__init__(
             f"Source '{source_name}' (id={source_id}) already imported",
             details={
                 "source_id": source_id,
                 "source_name": source_name,
-                col_label: input_key,
+                colLabel: inputKey,
             },
         )
 
@@ -68,16 +68,16 @@ class SourceAlreadyImportedError(ProcessingError):
 class DownloadError(ProcessingError):
     """HTTP download of the playlist failed."""
 
-    default_reason = "download_failed"
+    defaultReason = "download_failed"
 
 
 class EnrichmentError(ProcessingError):
-    """Segment enrichment failed (caught internally in import_m3u_to_db)."""
+    """Segment enrichment failed (caught internally in importM3uToDb)."""
 
-    default_reason = "enrichment_failed"
+    defaultReason = "enrichment_failed"
 
 
 class ConfigurationError(BingrError):
     """Config/boot issues."""
 
-    default_reason = "configuration_error"
+    defaultReason = "configuration_error"

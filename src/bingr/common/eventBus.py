@@ -26,6 +26,9 @@ class EventBus(QObject):
     """
 
     reloadChannelsData = Signal(object)
+    toggleFavoriteRequested = Signal(int)
+    favoriteToggled = Signal(int, bool)
+    heroChannelsReloadRequested = Signal()
     # Add more signals here as needed
 
     def __init__(self) -> None:
