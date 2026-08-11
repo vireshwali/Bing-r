@@ -34,6 +34,7 @@ from bingr.controllers.splashScreenController import SplashScreenController  # t
 from bingr.controllers.statusBarController import StatusBarController  # type: ignore  # noqa: F401
 from bingr.db.dbManager import DatabaseManager
 from bingr.jobs.heroChannelsPeriodicRefreshJob import HeroChannelsPeriodicRefreshJob
+from bingr.jobs.reachabilityCheckJob import ReachabilityCheckJob
 from bingr.services.processM3UFilesService import M3UFilesProcessor  # type: ignore # noqa: F401
 from bingr.services.systemHealthMonitorService import SystemHealthMonitorService  # type: ignore
 
@@ -69,6 +70,7 @@ def startJobs() -> None:
     """
 
     _activeJobs.append(HeroChannelsPeriodicRefreshJob())
+    _activeJobs.append(ReachabilityCheckJob())
     logger.info("All periodic jobs started.")
 
 
