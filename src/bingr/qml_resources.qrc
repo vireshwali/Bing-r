@@ -21,5 +21,6 @@
         <file alias="heart-filled.svg">ui/images/heart-filled.svg</file>
         <file alias="user-sound.svg">ui/images/user-sound.svg</file>
         <file alias="funnel.svg">ui/images/funnel.svg</file>
+        <file alias="stop.svg">ui/images/stop.svg</file>
     </qresource>
 </RCC>
