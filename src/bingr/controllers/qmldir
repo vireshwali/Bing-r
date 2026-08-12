@@ -1,0 +1,11 @@
+module bingr.controllers
+
+singleton SplashScreenController 1.0 SplashScreenController.qml
+singleton StatusBarController 1.0 StatusBarController.qml
+singleton ChannelsController 1.0 ChannelsController.qml
+AddNewSourcesController 1.0 AddNewSourcesController.qml
+MainPlayerController 1.0 MainPlayerController.qml
+MpvFramebufferObject 1.0 MpvFramebufferObject.qml
+FavoritesController 1.0 FavoritesController.qml
+SettingsController 1.0 SettingsController.qml
+HomeController 1.0 HomeController.qml
