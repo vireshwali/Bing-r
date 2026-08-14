@@ -29,7 +29,7 @@ class EventBus(QObject):
     toggleFavoriteRequested = Signal(int)
     favoriteToggled = Signal(int, bool)
     heroChannelsReloadRequested = Signal()
-    reachabilityCheckRequested = Signal()
+    reachabilityCheckRequested = Signal(object)
     # Add more signals here as needed
 
     def __init__(self) -> None:
