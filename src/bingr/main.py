@@ -69,7 +69,7 @@ def startJobs() -> None:
     each job exposes stop() for graceful shutdown.
     """
 
-    _activeJobs.append(HeroChannelsPeriodicRefreshJob())
+    # _activeJobs.append(HeroChannelsPeriodicRefreshJob())
     _activeJobs.append(ReachabilityCheckJob())
     logger.info("All periodic jobs started.")
 
