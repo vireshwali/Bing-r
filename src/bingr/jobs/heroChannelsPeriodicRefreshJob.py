@@ -11,7 +11,6 @@ import logging
 from PySide6.QtCore import QObject, QTimer
 
 from bingr.common.eventBus import appEventBus
-from bingr.services.settingsService import SettingsService
 
 logger = logging.getLogger(__name__)
 
