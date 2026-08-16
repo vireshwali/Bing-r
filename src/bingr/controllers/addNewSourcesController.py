@@ -61,6 +61,7 @@ class AddNewSourcesController(QObject):
     async def _processAll(self, urls: list[str]):  # noqa: C901
         total = len(urls)
         success = skipped = failed = 0
+        importedSourceIds: list[int] = []
 
         _statusCtrl: StatusBarControllerType | None
 
@@ -129,6 +130,7 @@ class AddNewSourcesController(QObject):
             try:
                 source = await importerService.importM3u(sourceName=name, m3uPath=m3uPath, url=m3uUrl)
                 success += 1
+                importedSourceIds.append(source.id)
                 self._sourcesProcessingStatusViewModel.updateItem(i - 1, "Imported")
                 self._publishMsg(_statusCtrl, f"Imported '{name}': {source.channel_count} channels")
                 await auditLog(
@@ -172,7 +174,24 @@ class AddNewSourcesController(QObject):
         self._publishMsg(_statusCtrl, f"Done: {', '.join(parts)}" if parts else "Done: nothing to import")
 
         if success:
-            appEventBus.reachabilityCheckRequested.emit()
+            channelIds = await self._channelIdsForSources(importedSourceIds)
+            if channelIds:
+                appEventBus.reachabilityCheckRequested.emit(channelIds)
+            else:
+                logger.info("AddNewSources: imported sources have no channels to probe")
+
+    async def _channelIdsForSources(self, sourceIds: list[int]) -> list[int]:
+        """Return the channel IDs linked to the given imported M3U sources."""
+        from sqlalchemy import select
+
+        from bingr.db.dbManager import DatabaseManager
+        from bingr.db.models import M3UChannel
+
+        sm = DatabaseManager.get_sessionmaker()
+        async with sm() as session:
+            stmt = select(M3UChannel.channel_id).where(M3UChannel.source_id.in_(sourceIds))
+            result = await session.execute(stmt)
+            return [row[0] for row in result.all()]
 
     def _resolve(self, url: str) -> Path:
         qurl = QUrl(url)
