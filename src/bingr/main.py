@@ -13,12 +13,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import PySide6.QtAsyncio as QtAsyncio
-from PySide6.QtCore import QStandardPaths, QTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QGuiApplication
-from PySide6.QtNetwork import QNetworkAccessManager, QNetworkDiskCache
-from PySide6.QtQml import QQmlApplicationEngine, QQmlNetworkAccessManagerFactory
+from PySide6.QtQml import QQmlApplicationEngine
 
 from bingr import qml_resources  # type: ignore # noqa: F401
+from bingr.common.appNetworkFactory import AppNetworkAccessManagerFactory
 from bingr.common.cache import initialize as initCache
 from bingr.common.commonUtils import trimHeap
 from bingr.common.config import getConfig
@@ -160,30 +160,6 @@ async def _bootApp(bootStart):
         logger.critical("Failed to initialize: %s", e, exc_info=True)
 
 
-class LimitedNetworkFactory(QQmlNetworkAccessManagerFactory):
-    def create(self, parent):
-        # Create the standard network manager
-        manager = QNetworkAccessManager(parent)
-
-        # Create a disk-backed cache to keep memory low
-        disk_cache = QNetworkDiskCache(manager)
-
-        # Set a safe path on the user's system
-        logger.info(
-            "Setting network disk cache path to: %s",
-            QStandardPaths.writableLocation(QStandardPaths.StandardLocation.CacheLocation) + "/logo_cache",
-        )
-        cache_path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.CacheLocation) + "/logo_cache"
-        disk_cache.setCacheDirectory(cache_path)
-
-        # Strictly cap the cache size (e.g., 20 MB max)
-        disk_cache.setMaximumCacheSize(20 * 1024 * 1024)
-
-        # Apply cache to manager
-        manager.setCache(disk_cache)
-        return manager
-
-
 def main() -> None:
     """Application entry point — can be called from gui-scripts or __main__."""
     app = QGuiApplication(sys.argv)
@@ -201,7 +177,7 @@ def main() -> None:
     appEngineLocal = QQmlApplicationEngine()
 
     if appEngineLocal:
-        factory = LimitedNetworkFactory()
+        factory = AppNetworkAccessManagerFactory(enableCache=True)
         appEngineLocal.setNetworkAccessManagerFactory(factory)
 
         appEngineLocal.addImportPath(Path(__file__).resolve().parent)
