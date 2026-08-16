@@ -20,6 +20,7 @@ from PySide6.QtQml import QQmlApplicationEngine, QQmlNetworkAccessManagerFactory
 
 from bingr import qml_resources  # type: ignore # noqa: F401
 from bingr.common.cache import initialize as initCache
+from bingr.common.commonUtils import trimHeap
 from bingr.common.config import getConfig
 from bingr.common.logging import setupLogging
 from bingr.controllers.addNewSourcesController import AddNewSourcesController  # type: ignore # noqa: F401
@@ -195,6 +196,7 @@ def main() -> None:
 
     app.aboutToQuit.connect(lambda: asyncio.ensure_future(_shutdownDb()))
     app.aboutToQuit.connect(stopJobs)
+    app.aboutToQuit.connect(trimHeap)
 
     appEngineLocal = QQmlApplicationEngine()
 
