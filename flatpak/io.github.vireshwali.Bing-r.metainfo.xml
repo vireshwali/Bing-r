@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.github.vireshwali.Bing-r</id>
+  <id>io.github.vireshwali.Bing-r</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
   <name>Bing-r</name>
@@ -20,10 +20,10 @@
       <li>Dark theme with modern Qt Quick UI</li>
     </ul>
   </description>
-  <launchable type="desktop-id">com.github.vireshwali.Bing-r.desktop</launchable>
+  <launchable type="desktop-id">io.github.vireshwali.Bing-r.desktop</launchable>
   <url type="homepage">https://github.com/vireshwali/Bing-r</url>
   <url type="bugtracker">https://github.com/vireshwali/Bing-r/issues</url>
-  <developer id="com.github.vireshwali">
+  <developer id="io.github.vireshwali">
     <name>Viresh Wali</name>
   </developer>
   <content_rating type="oars-1.1"/>
