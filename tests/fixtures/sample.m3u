@@ -1,0 +1,7 @@
+#EXTM3U x-tvg-url="https://epg.example.com/guide.xml"
+#EXTINF:-1 tvg-id="BHT1.ba" tvg-name="BHT 1 HD" tvg-logo="https://example.com/bht1.png" group-title="BA",BHT 1 (1080p)
+http://example.com/bht1.m3u8
+#EXTINF:-1 tvg-id="ARTE.fr" tvg-name="ARTE HD" group-title="FR",ARTE
+http://example.com/arte.m3u8
+#EXTINF:-1 tvg-id="" tvg-name="Local Channel" group-title="Local",Local Channel
+http://example.com/local.m3u8
