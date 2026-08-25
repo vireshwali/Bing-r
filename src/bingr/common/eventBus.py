@@ -30,7 +30,27 @@ class EventBus(QObject):
     favoriteToggled = Signal(int, bool)
     heroChannelsReloadRequested = Signal()
     reachabilityCheckRequested = Signal(object)
-    # Add more signals here as needed
+
+    # Emitted by SystemHealthMonitorJob every 10s to trigger health checks.
+    systemHealthCheckRequested = Signal()
+
+    # Status bar event bus signals — emitted by services, consumed by
+    # StatusBarController which queues them and drains to QML in FIFO order.
+
+    # Emitted when a progress/status text message arrives (e.g. "Loading channels...").
+    statusBarProgressUpdate = Signal(str)
+
+    # Emitted when internet connectivity status changes.
+    # msg: human-readable text, msgType: "success"|"warning"|"error"
+    statusBarInternetUpdate = Signal(str, str)
+
+    # Emitted when disk space status changes.
+    # msg: human-readable text, msgType: "success"|"warning"|"error"
+    statusBarDiskUpdate = Signal(str, str)
+
+    # Emitted when RAM status changes.
+    # msg: human-readable text, msgType: "success"|"warning"|"error"
+    statusBarRamUpdate = Signal(str, str)
 
     def __init__(self) -> None:
         super().__init__()
