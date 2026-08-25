@@ -41,6 +41,7 @@ from __future__ import annotations
 import asyncio
 import gc
 import logging
+import math
 import time
 from collections.abc import AsyncIterator, Sequence
 
@@ -58,7 +59,7 @@ from bingr.services.httpProbeService import HttpProbeService
 
 logger = logging.getLogger(__name__)
 
-CHECK_INTERVAL_MINUTES = 60
+CHECK_INTERVAL_MINUTES = 5
 CHANNEL_BATCH_SIZE = 20
 
 
@@ -68,6 +69,7 @@ class ReachabilityCheckJob(QObject):
     def __init__(
         self,
         parent: QObject | None = None,
+        ffprobePath: str | None = None,
     ) -> None:
         super().__init__(parent)
         self._running = False
@@ -75,9 +77,10 @@ class ReachabilityCheckJob(QObject):
         self._queuedChannelIds: list[int] = []
 
         # Services own their own network manager / subprocess handling and
-        # their own defaults; the job only orchestrates them.
+        # their own defaults; the job only orchestrates them. ffprobePath lets
+        # callers point at a local ffprobe binary for development.
         self._httpProbe = HttpProbeService()
-        self._ffprobe = FfprobeService()
+        self._ffprobe = FfprobeService(ffprobePath=ffprobePath) if ffprobePath else FfprobeService()
         self._channelService = ChannelsManagementService()
 
         appEventBus.reachabilityCheckRequested.connect(self._onRequested)
@@ -134,7 +137,8 @@ class ReachabilityCheckJob(QObject):
         gc.set_threshold(200, origThresholds[1], origThresholds[2])
 
         totalProbed = 0
-        totalBatches = 0
+        processedBatches = 0
+        batchNumber = 0
         probeStartedAt = time.monotonic()
 
         try:
@@ -151,15 +155,18 @@ class ReachabilityCheckJob(QObject):
                 targetIds.update(self._queuedChannelIds)
                 self._queuedChannelIds.clear()
 
+            # Pre-count the total number of batches for progress reporting.
+            totalBatches = await self._estimateBatches(targetIds)
+
             while True:
                 if targetIds is None:
                     iterator = self._channelBatches(sm, CHANNEL_BATCH_SIZE)
                 else:
                     iterator = self._channelsByIds(sm, targetIds, CHANNEL_BATCH_SIZE)
 
-                probed, batches = await self._probeAll(iterator)
+                probed, batches, batchNumber = await self._probeAll(iterator, totalBatches, batchNumber)
                 totalProbed += probed
-                totalBatches += batches
+                processedBatches += batches
 
                 # Drain any on-demand IDs that arrived while we were running.
                 if not self._queuedChannelIds:
@@ -167,15 +174,19 @@ class ReachabilityCheckJob(QObject):
                 targetIds = set(self._queuedChannelIds)
                 self._queuedChannelIds.clear()
 
-            if totalBatches == 0 or totalProbed == 0:
+            if processedBatches == 0 or totalProbed == 0:
                 logger.info("[Reachability] Check finished: no URLs to probe")
+                appEventBus.statusBarProgressUpdate.emit("Reachability check finished: no URLs to probe")
             else:
                 elapsed = time.monotonic() - probeStartedAt
                 logger.info(
                     "Reachability Check complete: %d URL(s) in %d batch(es), done in %.1fs",
                     totalProbed,
-                    totalBatches,
+                    processedBatches,
                     elapsed,
+                )
+                appEventBus.statusBarProgressUpdate.emit(
+                    f"Reachability check complete. {processedBatches} batch(es), {totalProbed} URL(s) in {elapsed:.1f}s"
                 )
         except Exception:
             logger.exception("Reachability check failed")
@@ -187,32 +198,69 @@ class ReachabilityCheckJob(QObject):
             if not self._stopped:
                 self._timer.start(CHECK_INTERVAL_MINUTES * 60 * 1000)
 
+    async def _estimateBatches(self, targetIds: set[int] | None) -> int:
+        """Estimate the total batch count and emit the start progress message.
+
+        Periodic sweeps (``targetIds is None``) count all channels via the
+        service; on-demand runs use the given ID set directly.
+        """
+        if targetIds is None:
+            channelCount = await self._channelService.getAllChannelsCount()
+            totalBatches = math.ceil(channelCount / CHANNEL_BATCH_SIZE) if channelCount > 0 else 0
+        else:
+            totalBatches = math.ceil(len(targetIds) / CHANNEL_BATCH_SIZE)
+
+        if totalBatches > 0:
+            logger.info("Starting reachability check: %d estimated batch(es)", totalBatches)
+            appEventBus.statusBarProgressUpdate.emit(f"Starting reachability check. {totalBatches} batch(es)")
+        else:
+            logger.info("Starting reachability check: no channels to probe")
+            appEventBus.statusBarProgressUpdate.emit("Starting reachability check...")
+        return totalBatches
+
     async def _probeAll(
         self,
         iterator: AsyncIterator[list[Channel]],
-    ) -> tuple[int, int]:
+        totalExpectedBatches: int = 0,
+        batchOffset: int = 0,
+    ) -> tuple[int, int, int]:
         """Iterate channel batches, probe each and persist the results.
 
-        Returns ``(totalProbed, totalBatches)`` so the caller can log a summary.
+        Returns ``(totalProbed, totalBatches, batchNumber)`` so the caller can log a
+        summary and continue batch numbering across passes. Progress is also
+        emitted on the status bar event bus at the start of every batch.
         Every batch is released — ``del`` + ``gc.collect()`` + ``trimHeap()`` —
         right after its results are written to the DB.
         """
         totalProbed = 0
         totalBatches = 0
+        batchNumber = batchOffset
         async for batchChannels in iterator:
             totalBatches += 1
+            batchNumber += 1
 
             batchChannelIds = {channel.id for channel in batchChannels}
 
-            results, urlToChannelIds = await self._processBatch(batchChannels)
+            results, urlToChannelIds = await self._processBatch(batchNumber, totalExpectedBatches, batchChannels)
             totalProbed += len(results)
 
             await self._persistBatch(batchChannelIds, results, urlToChannelIds)
 
             del batchChannels
+            del results
+            del urlToChannelIds
+            del batchChannelIds
             gc.collect()
             trimHeap()
-        return totalProbed, totalBatches
+            # Yield to the Qt event loop so queued deleteLater() deletions
+            # (QNetworkReply, QProcess) are actually processed between batches;
+            # otherwise reply wrappers pile up until the whole run finishes.
+            await asyncio.sleep(0)
+            # Recreate the QNAM between batches to drop its retained DNS / SSL /
+            # keep-alive state, which outlives individual replies. Only safe now
+            # that every probe in this batch has resolved and been released.
+            self._httpProbe.reset()
+        return totalProbed, totalBatches, batchNumber
 
     # ------------------------------------------------------------------
     # Batch loading
@@ -286,6 +334,8 @@ class ReachabilityCheckJob(QObject):
 
     async def _processBatch(
         self,
+        batchNumber: int,
+        totalBatches: int,
         batchChannels: list[Channel],
     ) -> tuple[dict[str, bool], dict[str, set[int]]]:
         """Enqueue, probe and collect results for one channel batch.
@@ -304,8 +354,12 @@ class ReachabilityCheckJob(QObject):
         if not keyToUrl:
             return {}, urlToChannelIds
 
+        appEventBus.statusBarProgressUpdate.emit(f"Starting batch {batchNumber} of total {totalBatches}.")
+
         logger.info(
-            "Starting probe batch of %d channel(s) -> %d unique URL(s)",
+            "Starting batch %d of total %d. channel(s): %d -> unique URL(s): %d ",
+            batchNumber,
+            totalBatches,
             len(batchChannels),
             len(keyToUrl),
         )
