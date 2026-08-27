@@ -1,0 +1,4 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="corrupt_test_uniq" tvg-name="Uniq Channel",Uniq
+http://example.com/uniq.m3u8
+#EXTINF:-1 tvg-id="" tvg-name="No URI",No URI
