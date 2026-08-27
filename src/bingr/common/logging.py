@@ -52,4 +52,11 @@ def setupLogging():
 
     logging.getLogger("alembic.runtime.plugins").setLevel(logging.WARNING)
 
+    # Route print()/stdout/stderr output (mpv, ffmpeg, stray prints) through
+    # the logger tree so it lands in bingr.log as well. Handlers above already
+    # hold the real stream objects, so this cannot recurse.
+    from .logStreamProxy import installStreamProxies
+
+    installStreamProxies()
+
     bingrLogger.info("Logging initialized — stderr + %s", logFile)
