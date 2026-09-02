@@ -6,10 +6,9 @@ import asyncio
 import logging
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Property, QObject, QUrl, Slot
-from PySide6.QtQml import QmlElement, QQmlEngine, qmlEngine
+from PySide6.QtQml import QmlElement
 
 from bingr.common.eventBus import appEventBus
 from bingr.common.eventTypes import ReloadChannelsDataEvent
@@ -30,18 +29,10 @@ QML_IMPORT_MAJOR_VERSION = 1
 logger = logging.getLogger(__name__)
 
 
-# If type checking, treat it as Any to bypass the error, but use it as a string literal
-if TYPE_CHECKING:
-    StatusBarControllerType = Any
-else:
-    StatusBarControllerType = "StatusBarController"
-
-
 @QmlElement
 class AddNewSourcesController(QObject):
     def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
-        self.appEngine: QQmlEngine | None = qmlEngine(self)
         self._sourcesProcessingStatusViewModel = SourcesProcessingStatusViewModel(self)
 
     @Property(QObject, constant=True)
@@ -56,27 +47,11 @@ class AddNewSourcesController(QObject):
     def _publishReloadChannelsDataEvent(self) -> None:
         """Emit ReloadChannelsDataEvent event after M3U import completes."""
         appEventBus.reloadChannelsData.emit(ReloadChannelsDataEvent(True))
-        logger.info("ReloadChannelsDataEvent emitted")
 
     async def _processAll(self, urls: list[str]):  # noqa: C901
         total = len(urls)
         success = skipped = failed = 0
         importedSourceIds: list[int] = []
-
-        _statusCtrl: StatusBarControllerType | None
-
-        if self.appEngine:
-            _statusCtrl = self.appEngine.singletonInstance("bingr.controllers", "StatusBarController")
-        else:
-            # sometimes it might happen that this instance may not have the app egine available,
-            # in that case we can try to get it from the qmlEngine again
-            self.appEngine = qmlEngine(self)
-
-            # if its still not available, we can log an error else get the status controller from the app engine
-            if not self.appEngine:
-                raise RuntimeError("AddNewSourcesController: appEngine is not available, cannot process sources.")
-            else:
-                _statusCtrl = self.appEngine.singletonInstance("bingr.controllers", "StatusBarController")
 
         if total > 0:
             sourcesList: list[SourcesProcessingStatusModel] = []
@@ -88,9 +63,9 @@ class AddNewSourcesController(QObject):
                 sourcesList.append(SourcesProcessingStatusModel(displayName, "Pending"))
             self._sourcesProcessingStatusViewModel.resetItems(sourcesList)
 
-            self._publishMsg(_statusCtrl, f"Processing {total} stream sources...")
+            self._publishProgress(f"Processing {total} stream sources...")
         else:
-            self._publishMsg(_statusCtrl, "No M3U sources received to process.")
+            self._publishProgress("No M3U sources received to process.")
             return
 
         for i, item in enumerate(urls, 1):
@@ -98,7 +73,7 @@ class AddNewSourcesController(QObject):
                 if not self._isValidUrl(item):
                     failed += 1
                     self._sourcesProcessingStatusViewModel.updateItem(i - 1, "Failed: Invalid URL")
-                    self._publishMsg(_statusCtrl, f"Invalid URL: {item}")
+                    self._publishProgress(f"Invalid URL: {item}")
                     await auditLog(AuditCategory.SOURCE_FAILED, f"Invalid URL: {item}", reason="invalid_url")
                     continue
                 name = self._nameFromUrl(item)
@@ -117,7 +92,7 @@ class AddNewSourcesController(QObject):
                     else:
                         status = "Failed: Source error"
                     self._sourcesProcessingStatusViewModel.updateItem(i - 1, status)
-                    self._publishMsg(_statusCtrl, str(e))
+                    self._publishProgress(str(e))
                     await auditLog(AuditCategory.SOURCE_FAILED, str(e), reason=e.reason, details=e.details)
                     continue
                 name = path.stem
@@ -125,14 +100,14 @@ class AddNewSourcesController(QObject):
                 m3uUrl = None
 
             self._sourcesProcessingStatusViewModel.updateItem(i - 1, "Processing")
-            self._publishMsg(_statusCtrl, f"Starting import of {name}, channels source {i} of {total}.")
+            self._publishProgress(f"Importing '{name}', channels source {i} of {total}.")
 
             try:
                 source = await importerService.importM3u(sourceName=name, m3uPath=m3uPath, url=m3uUrl)
                 success += 1
                 importedSourceIds.append(source.id)
                 self._sourcesProcessingStatusViewModel.updateItem(i - 1, "Imported")
-                self._publishMsg(_statusCtrl, f"Imported '{name}': {source.channel_count} channels")
+                self._publishProgress(f"Finished import of '{name}': {source.channel_count} channels")
                 await auditLog(
                     AuditCategory.SOURCE_PROCESSED,
                     f"Imported {name}: {source.channel_count} channels",
@@ -145,17 +120,17 @@ class AddNewSourcesController(QObject):
             except SourceAlreadyImportedError as e:
                 skipped += 1
                 self._sourcesProcessingStatusViewModel.updateItem(i - 1, "Skipped")
-                self._publishMsg(_statusCtrl, f"Skipped '{name}': {e}")
+                self._publishProgress(f"Skipped '{name}': {e}")
                 await auditLog(AuditCategory.SOURCE_SKIPPED, str(e), reason=e.reason)
             except ProcessingError as e:
                 failed += 1
                 self._sourcesProcessingStatusViewModel.updateItem(i - 1, "Failed: Import error")
-                self._publishMsg(_statusCtrl, f"Failed '{name}': {e}")
+                self._publishProgress(f"Failed '{name}': {e}")
                 await auditLog(AuditCategory.SOURCE_FAILED, str(e), reason=e.reason, details=e.details)
             except Exception as e:
                 failed += 1
                 self._sourcesProcessingStatusViewModel.updateItem(i - 1, "Failed: Unknown err")
-                self._publishMsg(_statusCtrl, f"Failed '{name}': {e}")
+                self._publishProgress(f"Failed '{name}': {e}")
                 await auditLog(
                     AuditCategory.SOURCE_FAILED,
                     str(e),
@@ -171,14 +146,15 @@ class AddNewSourcesController(QObject):
             parts.append(f"{skipped} skipped")
         if failed:
             parts.append(f"{failed} failed")
-        self._publishMsg(_statusCtrl, f"Done: {', '.join(parts)}" if parts else "Done: nothing to import")
+        self._publishProgress(f"Done: {', '.join(parts)}" if parts else "Done: nothing to import")
 
-        if success:
-            channelIds = await self._channelIdsForSources(importedSourceIds)
-            if channelIds:
-                appEventBus.reachabilityCheckRequested.emit(channelIds)
-            else:
-                logger.info("AddNewSources: imported sources have no channels to probe")
+        # TODO: Re-enable reachability probe trigger when the job is re-activated.
+        # if success:
+        #     channelIds = await self._channelIdsForSources(importedSourceIds)
+        #     if channelIds:
+        #         appEventBus.reachabilityCheckRequested.emit(channelIds)
+        #     else:
+        #         logger.info("AddNewSources: imported sources have no channels to probe")
 
     async def _channelIdsForSources(self, sourceIds: list[int]) -> list[int]:
         """Return the channel IDs linked to the given imported M3U sources."""
@@ -224,7 +200,5 @@ class AddNewSourcesController(QObject):
             raise InvalidM3UFileError(path.name, path.suffix)
         return path
 
-    def _publishMsg(self, _statusCtrl: StatusBarControllerType, msg: str):
-        if _statusCtrl:
-            _statusCtrl.publishProgress(msg)
-        logger.info("%s", msg)
+    def _publishProgress(self, msg: str):
+        appEventBus.statusBarProgressUpdate.emit(msg)

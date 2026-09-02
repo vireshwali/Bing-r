@@ -9,10 +9,25 @@ from __future__ import annotations
 
 import ctypes as _ctypes
 import logging
+import os
+from pathlib import Path
 
 from PySide6.QtCore import QUrl
 
 logger = logging.getLogger(__name__)
+
+
+# ── Execution environment detection ───────────────────────────────
+
+
+def isFlatpak() -> bool:
+    """Detect Flatpak sandbox — checks ``/.flatpak-info`` and ``FLATPAK_ID``."""
+    return Path("/.flatpak-info").exists() or bool(os.environ.get("FLATPAK_ID"))
+
+
+def isNuitka() -> bool:
+    """Detect Nuitka compiled binary."""
+    return "__compiled__" in globals()
 
 # glibc is the only common C library that exports ``malloc_trim``. Try every
 # common library name before giving up: some distros only ship ``libc.so.6``,

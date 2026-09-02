@@ -12,6 +12,8 @@ from typing import Any
 
 from dotenv import dotenv_values, set_key
 
+from bingr.common.commonUtils import isFlatpak, isNuitka
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,19 +34,7 @@ def _infer(raw: str) -> Any:
     return raw
 
 
-DOTENV_LOCATIONS = [
-    Path.home() / ".config" / "bingr" / ".env",
-    Path.home() / ".bingr" / ".env",
-]
-
-SHIPPED_DOTENV = Path(__file__).resolve().parent.parent.parent.parent / "config" / ".env"
-
-
 # ── XDG / path resolution ──────────────────────────────────────────
-
-def _isFlatpak() -> bool:
-    """Detect Flatpak sandbox — XDG_CONFIG_HOME is always set inside it."""
-    return bool(os.environ.get("XDG_CONFIG_HOME"))
 
 
 def _xdgConfigHome() -> Path:
@@ -55,13 +45,22 @@ def _xdgDataHome() -> Path:
     return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
 
 
-def _xdgStateHome() -> Path:
-    return Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state"))
-
-
 def _projectRoot() -> Path:
     """Fallback for local dev: four levels up from this file (src/bingr/common/config.py)."""
     return Path(__file__).resolve().parent.parent.parent.parent
+
+
+def _getDefaultDotenvLocations() -> list[Path]:
+    """User-level .env locations — XDG-aware (works in Flatpak and local dev)."""
+    return [_xdgConfigHome() / "Bing-r" / ".env"]
+
+
+def _resolveShippedDotenv() -> Path | None:
+    """Locate the shipped .env. Returns None in Flatpak (not installed there;
+    all defaults live as ``get(key, default)`` fallbacks in code)."""
+    if isFlatpak():
+        return None
+    return Path(__file__).resolve().parent.parent.parent.parent / "config" / ".env"
 
 
 class Config:
@@ -71,9 +70,11 @@ class Config:
         self._store: dict[str, str] = {}
         self._dotenvPaths: list[Path] = []
 
-        self._loadOne(SHIPPED_DOTENV)
+        shipped = _resolveShippedDotenv()
+        if shipped is not None:
+            self._loadOne(shipped)
 
-        for p in DOTENV_LOCATIONS:
+        for p in _getDefaultDotenvLocations():
             if p.exists():
                 self._loadOne(p)
 
@@ -95,20 +96,20 @@ class Config:
 
     def configDir(self) -> Path:
         """Directory for config files (.env, settings)."""
-        if _isFlatpak():
+        if isFlatpak() or isNuitka():
             return _xdgConfigHome() / "Bing-r"
         return _projectRoot() / "config"
 
     def dataDir(self) -> Path:
         """Directory for persistent data (DB, API cache, playlists)."""
-        if _isFlatpak():
+        if isFlatpak() or isNuitka():
             return _xdgDataHome() / "bingr"
         return _projectRoot() / "workspace"
 
     def logDir(self) -> Path:
         """Directory for log files."""
-        if _isFlatpak():
-            return _xdgStateHome() / "bingr" / "logs"
+        if isFlatpak() or isNuitka():
+            return _xdgDataHome() / "bingr" / "logs"
         return _projectRoot() / "logs"
 
     def dbPath(self) -> Path:
