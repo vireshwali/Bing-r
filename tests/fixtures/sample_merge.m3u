@@ -1,0 +1,7 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="BHT1.ba" tvg-name="BHT 1 HD" tvg-logo="https://example.com/bht1_v2.png" group-title="BA",BHT 1 (2160p)
+http://example.com/bht1_4k.m3u8
+#EXTINF:-1 tvg-id="ARTE.fr" tvg-name="ARTE FHD" group-title="FR",ARTE
+http://example.com/arte_fhd.m3u8
+#EXTINF:-1 tvg-id="NEW.cc" tvg-name="New Channel" group-title="NEW",New Channel
+http://example.com/new.m3u8
