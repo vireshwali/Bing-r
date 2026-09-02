@@ -1,0 +1,7 @@
+module bingr.models
+
+# ChannelsHeroViewModel 1.0 ChannelsHeroViewModel.qml
+# ChannelsGridViewModel 1.0 ChannelsGridViewModel.qml
+# CategoryFilterViewModel 1.0 CategoryFilterViewModel.qml
+# CountryFilterViewModel 1.0 CountryFilterViewModel.qml
+# QualityFilterViewModel 1.0 QualityFilterViewModel.qml

@@ -4,6 +4,15 @@ Sets QT_QUICK_CONTROLS_CONF, shows splash screen, initialises infra
 asynchronously, then transitions to App.qml with a minimum 3s splash.
 """
 
+import argparse
+
+# from PySide6.QtQml import QQmlDebuggingEnabler
+# # 1. Authorize the debugging system explicitly
+# QQmlDebuggingEnabler.enableDebugging(True)
+# # 2. Hardcode the command-line argument directly into the Python argument list
+# # This tricks the C++ engine into blocking at startup, bypassing shell isolation.
+# if not any(arg.startswith("-qmljsdebugger") for arg in sys.argv):
+#     sys.argv.append("-qmljsdebugger=port:10002,block")
 import asyncio
 import logging
 import os
@@ -13,14 +22,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import PySide6.QtAsyncio as QtAsyncio
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, QtMsgType, qInstallMessageHandler
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 from bingr import qml_resources  # type: ignore # noqa: F401
 from bingr.common.appNetworkFactory import AppNetworkAccessManagerFactory
 from bingr.common.cache import initialize as initCache
-from bingr.common.commonUtils import trimHeap
+from bingr.common.commonUtils import isNuitka, trimHeap
 from bingr.common.config import getConfig
 from bingr.common.logging import setupLogging
 from bingr.controllers.addNewSourcesController import AddNewSourcesController  # type: ignore # noqa: F401
@@ -35,15 +44,33 @@ from bingr.controllers.settingsController import SettingsController  # type: ign
 from bingr.controllers.splashScreenController import SplashScreenController  # type: ignore # noqa: F401
 from bingr.controllers.statusBarController import StatusBarController  # type: ignore  # noqa: F401
 from bingr.db.dbManager import DatabaseManager
-from bingr.jobs.heroChannelsPeriodicRefreshJob import HeroChannelsPeriodicRefreshJob
-from bingr.jobs.reachabilityCheckJob import ReachabilityCheckJob
+from bingr.jobs.systemHealthMonitorJob import SystemHealthMonitorJob
 from bingr.services.processM3UFilesService import M3UFilesProcessor  # type: ignore # noqa: F401
 from bingr.services.systemHealthMonitorService import SystemHealthMonitorService  # type: ignore
+
+# TODO: Re-enable reachability check job when a smarter probe strategy is designed.
+# from bingr.jobs.reachabilityCheckJob import ReachabilityCheckJob
 
 logger = logging.getLogger("bingr.main")
 
 MAX_WAIT_TIME_SECONDS = 4.0
 BACKGROUND_JOBS_START_DELAY_MINUTES = 1
+
+_QT_MSG_LEVEL_MAP = {
+    QtMsgType.QtDebugMsg: logging.DEBUG,
+    QtMsgType.QtInfoMsg: logging.INFO,
+    QtMsgType.QtWarningMsg: logging.WARNING,
+    QtMsgType.QtCriticalMsg: logging.ERROR,
+    QtMsgType.QtFatalMsg: logging.CRITICAL,
+}
+
+_qmlLogger = logging.getLogger("bingr.qml")
+
+
+def _qtMessageHandler(msgType, context, message):
+    """Route QML console.log/warn/error and Qt internal messages into bingr.log."""
+    level = _QT_MSG_LEVEL_MAP.get(msgType, logging.INFO)
+    _qmlLogger.log(level, "%s", message)
 
 _systemHealth: SystemHealthMonitorService | None = None
 
@@ -51,9 +78,13 @@ _activeJobs: list[Any] = []
 
 appEngine: QQmlApplicationEngine | None = None
 
+# ffprobe binary to use for playability validation. Defaults to whatever is on
+# PATH; pass --ffprobe-path <path> to point at a local build for development.
+FFPROBE_PATH: str | None = None
+
 projectRoot = Path(__file__).parent.parent.parent
 
-if "__compiled__" in globals():
+if isNuitka():
     projectRoot = Path(__file__).parent
 
 if TYPE_CHECKING:
@@ -72,7 +103,9 @@ def startJobs() -> None:
     """
 
     # _activeJobs.append(HeroChannelsPeriodicRefreshJob())
-    _activeJobs.append(ReachabilityCheckJob())
+    # TODO: Re-enable when reachability probing strategy is revisited.
+    # _activeJobs.append(ReachabilityCheckJob(ffprobePath=FFPROBE_PATH))
+    _activeJobs.append(SystemHealthMonitorJob())
     logger.info("All periodic jobs started.")
 
 
@@ -125,7 +158,7 @@ async def _bootApp(bootStart):
 
         global _systemHealth
         workspace = cfg.workspacePath()
-        _systemHealth = SystemHealthMonitorService(appEngine, workspace)
+        _systemHealth = SystemHealthMonitorService(workspace)
 
         splashCtrl.publishProgressMsg("Starting application interface...")
 
@@ -162,7 +195,20 @@ async def _bootApp(bootStart):
 
 def main() -> None:
     """Application entry point — can be called from gui-scripts or __main__."""
+    global FFPROBE_PATH
+    # Parse our own args before QGuiApplication consumes sys.argv.
+    parser = argparse.ArgumentParser(description="Bingr", add_help=False)
+    parser.add_argument("--ffprobe-path", dest="ffprobePath", default=None)
+    parsed, _ = parser.parse_known_args(sys.argv[1:])
+    if parsed.ffprobePath:
+        FFPROBE_PATH = parsed.ffprobePath
+        logger.info("Using ffprobe at: %s", FFPROBE_PATH)
+
     app = QGuiApplication(sys.argv)
+
+    # Capture QML console.log/warn/error + Qt warnings into bingr.log. Must be
+    # installed before any QML loads (splash screen below).
+    qInstallMessageHandler(_qtMessageHandler)
 
     cfg = getConfig()  # noqa: F841
 
