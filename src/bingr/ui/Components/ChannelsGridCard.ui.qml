@@ -1,4 +1,3 @@
-
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
 It is supposed to be strictly declarative and only uses a subset of QML. If you edit
@@ -10,15 +9,16 @@ import QtQuick.Controls
 import ui
 import ui.Components
 import QtQuick.Studio.DesignEffects
-import "HelperUtils.js" as HelperUrits
 import QtQuick.Timeline 1.0
+import bingr.controllers
 
 Item {
     id: root
-    width: 240
-    height: width + 95
+    width: 220
+    height: width + 65
 
     //data properties
+    property int channelId: -1
     property int indexCount: 1000000
     property url logoUrl: "https://i.imgur.com/qKLEGU7.png"
     property string countryCode: "CA"
@@ -32,6 +32,7 @@ Item {
     property int feedCount: 5
     property bool isFavorite: true
     property string languages: "English, Portuguese, French, Danish, Pakistani, African, French, Hindu, Gujarati, punjabi, kashmiriCanadian"
+    property string websiteUrl: ""
 
     // Card body
     Rectangle {
@@ -76,21 +77,27 @@ Item {
                 color: Constants.accent
                 anchors.left: parent.left
                 anchors.top: parent.top
-                anchors.leftMargin: 8
-                anchors.topMargin: 8
+                anchors.leftMargin: 6
+                anchors.topMargin: 6
                 text: root.indexCount
                 font.pixelSize: 12
+                z: 4
             }
 
             Image {
                 id: logoImg
                 anchors.fill: parent
                 anchors.bottomMargin: 20
-                anchors.margins: 14
+                anchors.margins: 12
                 source: root.logoUrl
+                sourceSize {
+                    width: 200
+                    height: width * 9 / 16
+                }
+                cache: false
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
-                mipmap: true
+                // mipmap: true
                 transformOrigin: Item.Center
             }
 
@@ -136,10 +143,10 @@ Item {
                     anchors.left: resolutionText.right
                     anchors.leftMargin: 6
                     anchors.verticalCenter: parent.verticalCenter
-                    source: (root.isFavorite) ? Qt.resolvedUrl(
-                                                    "../images/heart-filled.svg") : ""
+                    source: (root.isFavorite) ? Qt.resolvedUrl("../images/heart-filled.svg") : ""
                     sourceSize.width: 40
                     sourceSize.height: 40
+                    cache: false
                     fillMode: Image.PreserveAspectFit
                 }
             }
@@ -151,27 +158,26 @@ Item {
                 anchors.rightMargin: 8
                 width: 25
                 height: 12.5
-                source: root.countryCode !== "" ? "https://flagcdn.com/w40/"
-                                                  + root.countryCode.toLowerCase(
-                                                      ) + ".png" : ""
+                source: root.countryCode !== "" ? "https://flagcdn.com/w40/" + root.countryCode.toLowerCase() + ".png" : ""
                 sourceSize.width: 40
                 sourceSize.height: 20
+                cache: false
                 fillMode: Image.PreserveAspectFit
             }
 
             // Live dot
-            Rectangle {
-                id: rectangle
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.topMargin: 7
-                anchors.rightMargin: 7
-                width: 10
-                height: 10
-                radius: 5
-                color: Constants.liveGreen
-                visible: root.isLive
-            }
+            // Rectangle {
+            //     id: rectangle
+            //     anchors.top: parent.top
+            //     anchors.right: parent.right
+            //     anchors.topMargin: 7
+            //     anchors.rightMargin: 7
+            //     width: 10
+            //     height: 10
+            //     radius: 5
+            //     color: Constants.liveGreen
+            //     visible: root.isLive
+            // }
         }
 
         // ── Info section ──
@@ -207,7 +213,7 @@ Item {
                     wrapMode: Text.WordWrap
                     font.weight: Font.Medium
                     elide: Text.ElideRight
-                    maximumLineCount: 2
+                    maximumLineCount: 1
                     visible: root.altNames !== ""
                 }
             }
@@ -216,7 +222,7 @@ Item {
                 spacing: 6
 
                 Text {
-                    text: root.category !== "" ? root.category : "Uncategorized"
+                    text: root.category
                     color: Constants.textColorMuted
                     font.pixelSize: 12
                     verticalAlignment: Text.AlignVCenter
@@ -261,6 +267,7 @@ Item {
                     source: "../images/user-sound.svg"
                     sourceSize.height: 40
                     sourceSize.width: 40
+                    cache: false
                     fillMode: Image.PreserveAspectFit
                 }
 
@@ -273,7 +280,7 @@ Item {
                     font.pixelSize: 12
                     wrapMode: Text.WordWrap
                     elide: Text.ElideRight
-                    maximumLineCount: 3
+                    maximumLineCount: 1
                 }
             }
         }
@@ -300,7 +307,8 @@ Item {
                 Connections {
                     target: gridPlayBtn.buttonMouseArea
                     function onClicked() {
-                        console.log("fav clicked")
+                        console.log("play clicked");
+                        ChannelsController.channelIdPlayRequested(root.channelId);
                     }
                 }
             }
@@ -309,11 +317,22 @@ Item {
                 id: gridFavBtn
                 height: 32
                 btnImageSize: 22
-                btnImageSource: (root.isFavorite) ? Qt.resolvedUrl(
-                                                        "../images/heart-filled.svg") : Qt.resolvedUrl(
-                                                        "../images/heart.svg")
+                btnImageSource: (root.isFavorite) ? Qt.resolvedUrl("../images/heart-filled.svg") : Qt.resolvedUrl("../images/heart.svg")
                 btnShadowBlur: 4
                 btnShadowSpread: 2
+
+                Behavior on btnImageSource {
+                    PropertyAnimation {
+                        duration: 200
+                    }
+                }
+
+                Connections {
+                    target: gridFavBtn.buttonMouseArea
+                    function onClicked() {
+                        ChannelsController.toggleFavorite(root.channelId);
+                    }
+                }
             }
 
             IconButton {
@@ -323,6 +342,15 @@ Item {
                 btnImageSource: "../images/globe.svg"
                 btnShadowBlur: 4
                 btnShadowSpread: 2
+                visible: root.websiteUrl !== ""
+
+                Connections {
+                    target: gridWebsiteBtn.buttonMouseArea
+                    function onClicked() {
+                        if (root.websiteUrl !== "")
+                            Qt.openUrlExternally(root.websiteUrl);
+                    }
+                }
             }
         }
 

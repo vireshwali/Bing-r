@@ -57,6 +57,34 @@ def _mergeUniqueStr(existing: list[str] | None, newItems: list[str], *, caseSens
     return current
 
 
+def _mergeUniqueUris(existing: list[dict[str, Any]] | None, newUrls: list[str]) -> list[dict[str, Any]]:
+    """Merge new URL strings into the m3u_provided_uris dict list, deduping by URL.
+
+    New entries default to ``reachable=True`` (assumed live until the
+    reachability job proves otherwise).
+    """
+    current = [dict(item) for item in (existing or []) if isinstance(item, dict)]
+    seenUrls = {item.get("url") for item in current if item.get("url")}
+    for url in newUrls:
+        if url and url not in seenUrls:
+            current.append({"url": url, "reachable": True})
+            seenUrls.add(url)
+    return current
+
+
+def _markStreamsReachable(streams: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Return feed streams with a ``reachable`` key added (default True)."""
+    result = []
+    for stream in streams or []:
+        if not isinstance(stream, dict):
+            result.append(stream)
+            continue
+        item = dict(stream)
+        item.setdefault("reachable", True)
+        result.append(item)
+    return result
+
+
 def _mergeCategories(existing: list[dict[str, Any]] | None, newCats: list[dict[str, Any]]) -> list[dict[str, Any]]:
     current = list(existing) if existing else []
     seenIds = {c.get("id") for c in current if c.get("id")}
@@ -100,7 +128,7 @@ async def _insertChannel(session, channel_id: str, sourceId: int, enriched: dict
         tvg_logos=[tvg_logo] if tvg_logo else [],
         resolutions=[resolution] if resolution else [],
         flags=enriched.get("flags", []),
-        m3u_provided_uris=[uri] if uri else [],
+        m3u_provided_uris=[{"url": uri, "reachable": True}] if uri else [],
         matched_feed_id=enriched.get("matched_feed_id", ""),
         canonical_name=(chData or {}).get("name", enriched.get("clean_title", "")),
         alt_names=(chData or {}).get("alt_names", []),
@@ -130,7 +158,7 @@ async def _upsertFeeds(session, channelPk: int, enriched: dict[str, Any]):
             existing.is_main = f.get("is_main", existing.is_main)
             existing.broadcast_area = f.get("broadcast_area", existing.broadcast_area)
             existing.languages = f.get("languages", existing.languages)
-            existing.streams = f.get("streams", existing.streams)
+            existing.streams = _markStreamsReachable(f.get("streams", existing.streams))
             existing.updated_at = utcnow()
         else:
             feed = Feed(
@@ -141,7 +169,7 @@ async def _upsertFeeds(session, channelPk: int, enriched: dict[str, Any]):
                 is_main=f.get("is_main", False),
                 broadcast_area=f.get("broadcast_area", []),
                 languages=f.get("languages", []),
-                streams=f.get("streams", []),
+                streams=_markStreamsReachable(f.get("streams", [])),
             )
             session.add(feed)
 
@@ -157,8 +185,6 @@ async def _linkM3uChannel(session, channelPk: int, sourceId: int):
 
 
 async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str = "") -> int:
-    logger.info("Importing %s to DB (source_id=%d, source=%r) ...", m3uPath.name, sourceId, sourceName)
-
     playlist = m3u8.load(str(m3uPath), custom_tags_parser=parseIptvAttributesEnhanced)
 
     epgUrls = playlist.data.get("x_tvg_url", []) if hasattr(playlist, "data") else []
@@ -166,8 +192,6 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
         logger.info("  x-tvg-url: %d EPG URLs from header", len(epgUrls))
         src = (await session.execute(select(M3USource).where(M3USource.id == sourceId))).scalar_one()
         src.m3u_provided_epg_url = orjson.dumps(epgUrls).decode()
-
-    total = len(playlist.segments)
 
     count = 0
     errors = 0
@@ -190,10 +214,10 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
         existing = await _findChannel(session, chId)
         if existing:
             uris = existing.m3u_provided_uris or []
-            is_dup_uri = uri in uris
+            is_dup_uri = any(u.get("url") == uri for u in uris if isinstance(u, dict))
 
             if not is_dup_uri:
-                existing.m3u_provided_uris = _mergeUniqueStr(uris, [uri], caseSensitive=True)
+                existing.m3u_provided_uris = _mergeUniqueUris(uris, [uri])
 
             existing.tvg_ids = _mergeUniqueStr(existing.tvg_ids, [tvg_id], caseSensitive=True)
             existing.titles = _mergeUniqueStr(existing.titles, [enriched.get("title", "")], caseSensitive=False)
@@ -219,24 +243,13 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
             existing.updated_at = utcnow()
             await _upsertFeeds(session, existing.id, enriched)
             await _linkM3uChannel(session, existing.id, sourceId)
-            logger.debug("import: accumulated segment %d (%s @ %s)", i, chId, uri[:60])
         else:
             channel = await _insertChannel(session, chId, sourceId, enriched)
             await _upsertFeeds(session, channel.id, enriched)
             await _linkM3uChannel(session, channel.id, sourceId)
             count += 1
 
-        if count % 50 == 0:
-            logger.info("  progress: %d/%d channels imported", count, total)
-
     await session.flush()
-    logger.info(
-        "Imported %d channels from %s (%d segments, %d errors)",
-        count,
-        m3uPath.name,
-        total,
-        errors,
-    )
     return count
 
 
@@ -266,7 +279,6 @@ async def importM3u(
             else:
                 dst = playlists_dir / f"{m3uPath.stem}_{timestamp}{suffix}"
                 dst.write_bytes(m3uPath.read_bytes())
-                logger.info("Copied %s -> %s", m3uPath, dst)
             colLabel = "input_file"
         elif url is not None:
             inputKey = url
@@ -276,7 +288,6 @@ async def importM3u(
             stem, suffix = Path(urlName).stem, Path(urlName).suffix
             suffix = suffix if suffix else ".m3u"
             dst = playlists_dir / f"{stem}_{timestamp}{suffix}"
-            logger.info("Downloading %s -> %s", url, dst)
             try:
                 timeout = cfg.getInt(KEYS.DOWNLOAD_TIMEOUT, 120)
                 content = await asyncio.to_thread(
@@ -318,7 +329,6 @@ async def importM3u(
 
             source.channel_count = channel_count
             await session.commit()
-            logger.info("Source %r: imported %d channels", sourceName, channel_count)
             return source
     except ProcessingError:
         raise

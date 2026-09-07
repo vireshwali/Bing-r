@@ -21,6 +21,7 @@ Item {
     property int heroIndex: 0
     property bool heroHovered: false
     property var channelsModel: null
+    property var gridController: ChannelsController
 
     // ── Grid Layout ──
     property int cardWidth: 280
@@ -28,390 +29,390 @@ Item {
     readonly property real gridSpacing: 10
     readonly property int sideMargin: 24
 
-    ListModel {
-        id: dummyChannelsModel
+    // ListModel {
+    //     id: dummyChannelsModel
 
-        // ── 1 ──
-        ListElement {
-            channelId: "ArenaSport1.ba"
-            displayName: "Arena Sport 1"
-            logoUrl: "https://i.imgur.com/RJrJGbW.png"
-            countryCode: "BA"
-            countryName: "Bosnia and Herzegovina"
-            category: "Sports"
-            quality: "4K"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "Arena Sport 1 Bosna i Hercegovina"
-            additionalTags: ""
-            isFavorite: false
-            languages: "Serbian"
-            websiteUrl: "https://www.tvarenasport.com/ba"
-        }
-        // ── 2 ──
-        ListElement {
-            channelId: "DummyTV.de"
-            displayName: "Dummy TV Germany"
-            logoUrl: "https://placehold.co/300x168/1a1a2e/ffffff?text=Dummy+TV"
-            countryCode: "DE"
-            countryName: "Germany"
-            category: "News"
-            quality: "HD"
-            resolution: "720p"
-            feedCount: 2
-            feedsCount: 2
-            isLive: true
-            altNames: "Dummy Deutschland, Dummy TV DE"
-            additionalTags: "Geo-blocked"
-            isFavorite: true
-            languages: "German, English, French"
-            websiteUrl: ""
-        }
-        // ── 3 ──
-        ListElement {
-            channelId: "AXNAdria.us"
-            displayName: "AXN Adria"
-            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/AXN_logo_%282015%29.svg/960px-AXN_logo_%282015%29.svg.png"
-            countryCode: "US"
-            countryName: "United States"
-            category: "Movies"
-            quality: "SD"
-            resolution: "480i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: ""
-            additionalTags: ""
-            isFavorite: false
-            languages: "English"
-            websiteUrl: "http://www.axn.com/"
-        }
-        // ── 4 ──
-        ListElement {
-            channelId: "TestChannel.ca"
-            displayName: "Test Channel Canada"
-            logoUrl: "https://placehold.co/300x168/16213e/ffffff?text=Test+Channel"
-            countryCode: "CA"
-            countryName: "Canada"
-            category: "Sports"
-            quality: "4K"
-            resolution: "1080i"
-            feedCount: 3
-            feedsCount: 3
-            isLive: true
-            altNames: "Test Channel CA, Test Sports"
-            additionalTags: ""
-            isFavorite: false
-            languages: "English, French"
-            websiteUrl: ""
-        }
-        // ── 5 ──
-        ListElement {
-            channelId: "BHRT.ba"
-            displayName: "BHRT"
-            logoUrl: "https://i.imgur.com/01bZ5rw.png"
-            countryCode: "BA"
-            countryName: "Bosnia and Herzegovina"
-            category: "General"
-            quality: "HD"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: ""
-            additionalTags: "Geo-blocked"
-            isFavorite: true
-            languages: "Bosnian"
-            websiteUrl: ""
-        }
-        // ── 6 ──
-        ListElement {
-            channelId: "SampleTV.br"
-            displayName: "Sample TV Brazil"
-            logoUrl: "https://placehold.co/300x168/0f3460/ffffff?text=Sample+TV"
-            countryCode: "BR"
-            countryName: "Brazil"
-            category: "Movies"
-            quality: "SD"
-            resolution: "480i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "Sample Television, Sample TV BR"
-            additionalTags: "Not 24/7"
-            isFavorite: false
-            languages: "Portuguese, Spanish, English"
-            websiteUrl: ""
-        }
-        // ── 7 ──
-        ListElement {
-            channelId: "Federalnatelevizija.ba"
-            displayName: "Federalna televizija"
-            logoUrl: "https://i.imgur.com/astdRrE.png"
-            countryCode: "BA"
-            countryName: "Bosnia and Herzegovina"
-            category: "General"
-            quality: "HD"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "Federal television, Federalna TV, Federal TV, FTV, TV FBiH"
-            additionalTags: ""
-            isFavorite: false
-            languages: "Bosnian"
-            websiteUrl: "https://www.federalna.ba/"
-        }
-        // ── 8 ──
-        ListElement {
-            channelId: "FakeNews.uk"
-            displayName: "Fake News UK"
-            logoUrl: "https://placehold.co/300x168/533483/ffffff?text=Fake+News"
-            countryCode: "GB"
-            countryName: "United Kingdom"
-            category: "News"
-            quality: "HD"
-            resolution: "1080i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "FNews, Fake News United Kingdom"
-            additionalTags: "Geo-blocked, Premium"
-            isFavorite: true
-            languages: "English"
-            websiteUrl: ""
-        }
-        // ── 9 ──
-        ListElement {
-            channelId: "MariaPlusVisionMedjugorje.ba"
-            displayName: "Maria+Vision Medjugorje"
-            logoUrl: "https://i.imgur.com/xUOspBx.png"
-            countryCode: "BA"
-            countryName: "Bosnia and Herzegovina"
-            category: "Religious"
-            quality: "HD"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "María+Visión Medjugorje"
-            additionalTags: ""
-            isFavorite: false
-            languages: "Spanish"
-            websiteUrl: "https://www.mariavisionmedjugorje.com/"
-        }
-        // ── 10 ──
-        ListElement {
-            channelId: "MockSports.in"
-            displayName: "Mock Sports India"
-            logoUrl: "https://placehold.co/300x168/1b98b0/ffffff?text=Mock+Sports"
-            countryCode: "IN"
-            countryName: "India"
-            category: "Sports"
-            quality: "HD"
-            resolution: "720p"
-            feedCount: 4
-            feedsCount: 4
-            isLive: true
-            altNames: "Mock Sp, Mock Sports IN, मॉक स्पोर्ट्स"
-            additionalTags: ""
-            isFavorite: false
-            languages: "Hindi, English, Tamil"
-            websiteUrl: ""
-        }
-        // ── 11 ──
-        ListElement {
-            channelId: "MezzoLive.fr"
-            displayName: "Mezzo Live"
-            logoUrl: "https://i.imgur.com/H9ytKPN.png"
-            countryCode: "FR"
-            countryName: "France"
-            category: "Music"
-            quality: "SD"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "Mezzo Live HD"
-            additionalTags: ""
-            isFavorite: false
-            languages: "English"
-            websiteUrl: "https://www.mezzo.tv/"
-        }
-        // ── 12 ──
-        ListElement {
-            channelId: "DemoKids.jp"
-            displayName: "Demo Kids Japan"
-            logoUrl: "https://placehold.co/300x168/e94560/ffffff?text=Demo+Kids"
-            countryCode: "JP"
-            countryName: "Japan"
-            category: "Kids"
-            quality: "SD"
-            resolution: "480i"
-            feedCount: 2
-            feedsCount: 2
-            isLive: true
-            altNames: "Demo Kids JP, デモキッズ"
-            additionalTags: "Not 24/7"
-            isFavorite: true
-            languages: "Japanese, English"
-            websiteUrl: ""
-        }
-        // ── 13 ──
-        ListElement {
-            channelId: "9Gem.au"
-            displayName: "9Gem"
-            logoUrl: "https://i.imgur.com/cwLzqaw.png"
-            countryCode: "AU"
-            countryName: "Australia"
-            category: "Entertainment"
-            quality: "HD"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: ""
-            additionalTags: "Geo-blocked"
-            isFavorite: false
-            languages: "English"
-            websiteUrl: "https://www.9now.com.au/"
-        }
-        // ── 14 ──
-        ListElement {
-            channelId: "TrialMusic.kr"
-            displayName: "Trial Music Korea"
-            logoUrl: "https://placehold.co/300x168/0a1936/ffffff?text=Trial+Music"
-            countryCode: "KR"
-            countryName: "South Korea"
-            category: "Music"
-            quality: "4K"
-            resolution: "2160p"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "TrialMusic KR, 트라이얼 뮤직"
-            additionalTags: "Premium"
-            isFavorite: false
-            languages: "Korean, English, Japanese"
-            websiteUrl: ""
-        }
-        // ── 15 ──
-        ListElement {
-            channelId: "9Go.au"
-            displayName: "9Go!"
-            logoUrl: "https://i.imgur.com/RLijQI8.png"
-            countryCode: "AU"
-            countryName: "Australia"
-            category: "Entertainment"
-            quality: "HD"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: ""
-            additionalTags: "Geo-blocked"
-            isFavorite: false
-            languages: "English"
-            websiteUrl: "https://www.9now.com.au/"
-        }
-        // ── 16 ──
-        ListElement {
-            channelId: "SampleDoc.au"
-            displayName: "Sample Doc Australia"
-            logoUrl: "https://placehold.co/300x168/185a36/ffffff?text=Sample+Doc"
-            countryCode: "AU"
-            countryName: "Australia"
-            category: "Documentary"
-            quality: "HD"
-            resolution: "1080i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: "Sample Documentary, Sample Doc AU"
-            additionalTags: ""
-            isFavorite: true
-            languages: "English"
-            websiteUrl: ""
-        }
-        // ── 17 ──
-        ListElement {
-            channelId: "EuronewsAlbania.al"
-            displayName: "Euronews Albania"
-            logoUrl: "https://i.imgur.com/Skf6vdi.png"
-            countryCode: "AL"
-            countryName: "Albania"
-            category: "News"
-            quality: "HD"
-            resolution: "576i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: ""
-            additionalTags: "YouTube"
-            isFavorite: false
-            languages: "Albanian"
-            websiteUrl: "https://euronews.al/"
-        }
-        // ── 18 ──
-        ListElement {
-            channelId: "TestReligious.ph"
-            displayName: "Test Religious PH"
-            logoUrl: "https://placehold.co/300x168/6a1716/ffffff?text=Test+Religious"
-            countryCode: "PH"
-            countryName: "Philippines"
-            category: "Religious"
-            quality: "SD"
-            resolution: "480i"
-            feedCount: 2
-            feedsCount: 2
-            isLive: true
-            altNames: "Test Rel, Test Religious Philippines"
-            additionalTags: "Geo-blocked"
-            isFavorite: false
-            languages: "Tagalog, English, Spanish"
-            websiteUrl: ""
-        }
-        // ── 19 ──
-        ListElement {
-            channelId: "ShalomWorld.us"
-            displayName: "Shalom World"
-            logoUrl: "https://i.imgur.com/wnNd3b8.png"
-            countryCode: "US"
-            countryName: "United States"
-            category: "Religious"
-            quality: "4K"
-            resolution: "480i"
-            feedCount: 1
-            feedsCount: 1
-            isLive: true
-            altNames: ""
-            additionalTags: "Geo-blocked"
-            isFavorite: true
-            languages: "English"
-            websiteUrl: "https://shalomworld.org/"
-        }
-        // ── 20 ──
-        ListElement {
-            channelId: "DummyGeneral.mx"
-            displayName: "Dummy General Mexico"
-            logoUrl: "https://placehold.co/300x168/7a2d1a/ffffff?text=Dummy+General"
-            countryCode: "MX"
-            countryName: "Mexico"
-            category: "General"
-            quality: "HD"
-            resolution: "720p"
-            feedCount: 3
-            feedsCount: 3
-            isLive: true
-            altNames: "Dummy Gen MX, Dummy General México"
-            additionalTags: "Not 24/7"
-            isFavorite: false
-            languages: "Spanish, English"
-            websiteUrl: ""
-        }
-    }
+    //     // ── 1 ──
+    //     ListElement {
+    //         channelId: "ArenaSport1.ba"
+    //         displayName: "Arena Sport 1"
+    //         logoUrl: "https://i.imgur.com/RJrJGbW.png"
+    //         countryCode: "BA"
+    //         countryName: "Bosnia and Herzegovina"
+    //         category: "Sports"
+    //         quality: "4K"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "Arena Sport 1 Bosna i Hercegovina"
+    //         additionalTags: ""
+    //         isFavorite: false
+    //         languages: "Serbian"
+    //         websiteUrl: "https://www.tvarenasport.com/ba"
+    //     }
+    //     // ── 2 ──
+    //     ListElement {
+    //         channelId: "DummyTV.de"
+    //         displayName: "Dummy TV Germany"
+    //         logoUrl: "https://placehold.co/300x168/1a1a2e/ffffff?text=Dummy+TV"
+    //         countryCode: "DE"
+    //         countryName: "Germany"
+    //         category: "News"
+    //         quality: "HD"
+    //         resolution: "720p"
+    //         feedCount: 2
+    //         feedsCount: 2
+    //         isLive: true
+    //         altNames: "Dummy Deutschland, Dummy TV DE"
+    //         additionalTags: "Geo-blocked"
+    //         isFavorite: true
+    //         languages: "German, English, French"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 3 ──
+    //     ListElement {
+    //         channelId: "AXNAdria.us"
+    //         displayName: "AXN Adria"
+    //         logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/AXN_logo_%282015%29.svg/960px-AXN_logo_%282015%29.svg.png"
+    //         countryCode: "US"
+    //         countryName: "United States"
+    //         category: "Movies"
+    //         quality: "SD"
+    //         resolution: "480i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: ""
+    //         additionalTags: ""
+    //         isFavorite: false
+    //         languages: "English"
+    //         websiteUrl: "http://www.axn.com/"
+    //     }
+    //     // ── 4 ──
+    //     ListElement {
+    //         channelId: "TestChannel.ca"
+    //         displayName: "Test Channel Canada"
+    //         logoUrl: "https://placehold.co/300x168/16213e/ffffff?text=Test+Channel"
+    //         countryCode: "CA"
+    //         countryName: "Canada"
+    //         category: "Sports"
+    //         quality: "4K"
+    //         resolution: "1080i"
+    //         feedCount: 3
+    //         feedsCount: 3
+    //         isLive: true
+    //         altNames: "Test Channel CA, Test Sports"
+    //         additionalTags: ""
+    //         isFavorite: false
+    //         languages: "English, French"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 5 ──
+    //     ListElement {
+    //         channelId: "BHRT.ba"
+    //         displayName: "BHRT"
+    //         logoUrl: "https://i.imgur.com/01bZ5rw.png"
+    //         countryCode: "BA"
+    //         countryName: "Bosnia and Herzegovina"
+    //         category: "General"
+    //         quality: "HD"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: ""
+    //         additionalTags: "Geo-blocked"
+    //         isFavorite: true
+    //         languages: "Bosnian"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 6 ──
+    //     ListElement {
+    //         channelId: "SampleTV.br"
+    //         displayName: "Sample TV Brazil"
+    //         logoUrl: "https://placehold.co/300x168/0f3460/ffffff?text=Sample+TV"
+    //         countryCode: "BR"
+    //         countryName: "Brazil"
+    //         category: "Movies"
+    //         quality: "SD"
+    //         resolution: "480i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "Sample Television, Sample TV BR"
+    //         additionalTags: "Not 24/7"
+    //         isFavorite: false
+    //         languages: "Portuguese, Spanish, English"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 7 ──
+    //     ListElement {
+    //         channelId: "Federalnatelevizija.ba"
+    //         displayName: "Federalna televizija"
+    //         logoUrl: "https://i.imgur.com/astdRrE.png"
+    //         countryCode: "BA"
+    //         countryName: "Bosnia and Herzegovina"
+    //         category: "General"
+    //         quality: "HD"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "Federal television, Federalna TV, Federal TV, FTV, TV FBiH"
+    //         additionalTags: ""
+    //         isFavorite: false
+    //         languages: "Bosnian"
+    //         websiteUrl: "https://www.federalna.ba/"
+    //     }
+    //     // ── 8 ──
+    //     ListElement {
+    //         channelId: "FakeNews.uk"
+    //         displayName: "Fake News UK"
+    //         logoUrl: "https://placehold.co/300x168/533483/ffffff?text=Fake+News"
+    //         countryCode: "GB"
+    //         countryName: "United Kingdom"
+    //         category: "News"
+    //         quality: "HD"
+    //         resolution: "1080i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "FNews, Fake News United Kingdom"
+    //         additionalTags: "Geo-blocked, Premium"
+    //         isFavorite: true
+    //         languages: "English"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 9 ──
+    //     ListElement {
+    //         channelId: "MariaPlusVisionMedjugorje.ba"
+    //         displayName: "Maria+Vision Medjugorje"
+    //         logoUrl: "https://i.imgur.com/xUOspBx.png"
+    //         countryCode: "BA"
+    //         countryName: "Bosnia and Herzegovina"
+    //         category: "Religious"
+    //         quality: "HD"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "María+Visión Medjugorje"
+    //         additionalTags: ""
+    //         isFavorite: false
+    //         languages: "Spanish"
+    //         websiteUrl: "https://www.mariavisionmedjugorje.com/"
+    //     }
+    //     // ── 10 ──
+    //     ListElement {
+    //         channelId: "MockSports.in"
+    //         displayName: "Mock Sports India"
+    //         logoUrl: "https://placehold.co/300x168/1b98b0/ffffff?text=Mock+Sports"
+    //         countryCode: "IN"
+    //         countryName: "India"
+    //         category: "Sports"
+    //         quality: "HD"
+    //         resolution: "720p"
+    //         feedCount: 4
+    //         feedsCount: 4
+    //         isLive: true
+    //         altNames: "Mock Sp, Mock Sports IN, मॉक स्पोर्ट्स"
+    //         additionalTags: ""
+    //         isFavorite: false
+    //         languages: "Hindi, English, Tamil"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 11 ──
+    //     ListElement {
+    //         channelId: "MezzoLive.fr"
+    //         displayName: "Mezzo Live"
+    //         logoUrl: "https://i.imgur.com/H9ytKPN.png"
+    //         countryCode: "FR"
+    //         countryName: "France"
+    //         category: "Music"
+    //         quality: "SD"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "Mezzo Live HD"
+    //         additionalTags: ""
+    //         isFavorite: false
+    //         languages: "English"
+    //         websiteUrl: "https://www.mezzo.tv/"
+    //     }
+    //     // ── 12 ──
+    //     ListElement {
+    //         channelId: "DemoKids.jp"
+    //         displayName: "Demo Kids Japan"
+    //         logoUrl: "https://placehold.co/300x168/e94560/ffffff?text=Demo+Kids"
+    //         countryCode: "JP"
+    //         countryName: "Japan"
+    //         category: "Kids"
+    //         quality: "SD"
+    //         resolution: "480i"
+    //         feedCount: 2
+    //         feedsCount: 2
+    //         isLive: true
+    //         altNames: "Demo Kids JP, デモキッズ"
+    //         additionalTags: "Not 24/7"
+    //         isFavorite: true
+    //         languages: "Japanese, English"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 13 ──
+    //     ListElement {
+    //         channelId: "9Gem.au"
+    //         displayName: "9Gem"
+    //         logoUrl: "https://i.imgur.com/cwLzqaw.png"
+    //         countryCode: "AU"
+    //         countryName: "Australia"
+    //         category: "Entertainment"
+    //         quality: "HD"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: ""
+    //         additionalTags: "Geo-blocked"
+    //         isFavorite: false
+    //         languages: "English"
+    //         websiteUrl: "https://www.9now.com.au/"
+    //     }
+    //     // ── 14 ──
+    //     ListElement {
+    //         channelId: "TrialMusic.kr"
+    //         displayName: "Trial Music Korea"
+    //         logoUrl: "https://placehold.co/300x168/0a1936/ffffff?text=Trial+Music"
+    //         countryCode: "KR"
+    //         countryName: "South Korea"
+    //         category: "Music"
+    //         quality: "4K"
+    //         resolution: "2160p"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "TrialMusic KR, 트라이얼 뮤직"
+    //         additionalTags: "Premium"
+    //         isFavorite: false
+    //         languages: "Korean, English, Japanese"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 15 ──
+    //     ListElement {
+    //         channelId: "9Go.au"
+    //         displayName: "9Go!"
+    //         logoUrl: "https://i.imgur.com/RLijQI8.png"
+    //         countryCode: "AU"
+    //         countryName: "Australia"
+    //         category: "Entertainment"
+    //         quality: "HD"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: ""
+    //         additionalTags: "Geo-blocked"
+    //         isFavorite: false
+    //         languages: "English"
+    //         websiteUrl: "https://www.9now.com.au/"
+    //     }
+    //     // ── 16 ──
+    //     ListElement {
+    //         channelId: "SampleDoc.au"
+    //         displayName: "Sample Doc Australia"
+    //         logoUrl: "https://placehold.co/300x168/185a36/ffffff?text=Sample+Doc"
+    //         countryCode: "AU"
+    //         countryName: "Australia"
+    //         category: "Documentary"
+    //         quality: "HD"
+    //         resolution: "1080i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: "Sample Documentary, Sample Doc AU"
+    //         additionalTags: ""
+    //         isFavorite: true
+    //         languages: "English"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 17 ──
+    //     ListElement {
+    //         channelId: "EuronewsAlbania.al"
+    //         displayName: "Euronews Albania"
+    //         logoUrl: "https://i.imgur.com/Skf6vdi.png"
+    //         countryCode: "AL"
+    //         countryName: "Albania"
+    //         category: "News"
+    //         quality: "HD"
+    //         resolution: "576i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: ""
+    //         additionalTags: "YouTube"
+    //         isFavorite: false
+    //         languages: "Albanian"
+    //         websiteUrl: "https://euronews.al/"
+    //     }
+    //     // ── 18 ──
+    //     ListElement {
+    //         channelId: "TestReligious.ph"
+    //         displayName: "Test Religious PH"
+    //         logoUrl: "https://placehold.co/300x168/6a1716/ffffff?text=Test+Religious"
+    //         countryCode: "PH"
+    //         countryName: "Philippines"
+    //         category: "Religious"
+    //         quality: "SD"
+    //         resolution: "480i"
+    //         feedCount: 2
+    //         feedsCount: 2
+    //         isLive: true
+    //         altNames: "Test Rel, Test Religious Philippines"
+    //         additionalTags: "Geo-blocked"
+    //         isFavorite: false
+    //         languages: "Tagalog, English, Spanish"
+    //         websiteUrl: ""
+    //     }
+    //     // ── 19 ──
+    //     ListElement {
+    //         channelId: "ShalomWorld.us"
+    //         displayName: "Shalom World"
+    //         logoUrl: "https://i.imgur.com/wnNd3b8.png"
+    //         countryCode: "US"
+    //         countryName: "United States"
+    //         category: "Religious"
+    //         quality: "4K"
+    //         resolution: "480i"
+    //         feedCount: 1
+    //         feedsCount: 1
+    //         isLive: true
+    //         altNames: ""
+    //         additionalTags: "Geo-blocked"
+    //         isFavorite: true
+    //         languages: "English"
+    //         websiteUrl: "https://shalomworld.org/"
+    //     }
+    //     // ── 20 ──
+    //     ListElement {
+    //         channelId: "DummyGeneral.mx"
+    //         displayName: "Dummy General Mexico"
+    //         logoUrl: "https://placehold.co/300x168/7a2d1a/ffffff?text=Dummy+General"
+    //         countryCode: "MX"
+    //         countryName: "Mexico"
+    //         category: "General"
+    //         quality: "HD"
+    //         resolution: "720p"
+    //         feedCount: 3
+    //         feedsCount: 3
+    //         isLive: true
+    //         altNames: "Dummy Gen MX, Dummy General México"
+    //         additionalTags: "Not 24/7"
+    //         isFavorite: false
+    //         languages: "Spanish, English"
+    //         websiteUrl: ""
+    //     }
+    // }
 
     // ── Grid View ──
     GridView {
@@ -421,7 +422,7 @@ Item {
         //model: dummyChannelsModel // fallback for design-time
         cellWidth: root.cardWidth + root.gridSpacing
         cellHeight: root.cardWidth + 75 + root.gridSpacing
-        cacheBuffer: 200
+        cacheBuffer: 30
         clip: true
 
         //boundsBehavior: Flickable.StopAtBounds
@@ -432,6 +433,7 @@ Item {
             height: channelsGridView.cellHeight - 4
 
             indexCount: (index + 1)
+            channelId: model.channelId
             logoUrl: Qt.resolvedUrl(model.logoUrl)
             countryCode: model.countryCode
             quality: model.quality
@@ -444,6 +446,7 @@ Item {
             feedCount: model.feedCount
             isFavorite: model.isFavorite
             languages: model.languages
+            websiteUrl: model.websiteUrl
         }
 
         // Attaches the scrollbar with adaptive visibility
@@ -461,7 +464,7 @@ Item {
         }
 
         Connections {
-            target: ChannelsController
+            target: root.gridController
             function onGridIsLoading(isLoading) {
                 //console.log("Received in QML onGridIsLoading:")
                 if (isLoading) {

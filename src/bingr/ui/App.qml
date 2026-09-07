@@ -10,7 +10,7 @@ Window {
     minimumHeight: Constants.minimumHeight
 
     visible: true
-    title: qsTr("Bingr Mvp 1")
+    title: qsTr("Bing-r")
     color: systemPalette.window
 
     SystemPalette {

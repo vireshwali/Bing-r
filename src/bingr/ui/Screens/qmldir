@@ -1,0 +1,9 @@
+module ui.Screens
+
+AddChannels 1.0 AddChannels.ui.qml
+Channels 1.0 Channels.ui.qml
+Favourites 1.0 Favourites.ui.qml
+Home 1.0 Home.ui.qml
+Playlists 1.0 Playlists.ui.qml
+Settings 1.0 Settings.qml
+

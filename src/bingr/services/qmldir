@@ -1,0 +1,4 @@
+module bingr.services
+
+//M3UFilesProcessor 1.0 M3UFilesProcessor.qml
+SettingsService 1.0 SettingsService.qml

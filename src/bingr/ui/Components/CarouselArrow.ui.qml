@@ -34,8 +34,8 @@ Item {
             mipmap: true
             fillMode: Image.PreserveAspectFit
             source: "../images/arrow-fat-line-left.svg"
-            sourceSize.width: 40
-            sourceSize.height: 40
+            sourceSize.width: 36
+            sourceSize.height: 36
             width: 32
             height: 32
         }

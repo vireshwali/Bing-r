@@ -37,16 +37,12 @@ class MpvFramebufferObject(QQuickFramebufferObject):
 
     def __init__(self):
         super().__init__()
-        self._mpv = None
         self._renderer: MpvOffscreenRenderer | None = None
         self._pendingUrl: str | None = None
         self._reconnectAttempt = 0
         self._maxReconnectAttempts = 5
         self._mediaUrl: str | None = None
         self._userPaused = False
-        self._subtitlePollTimer: QTimer | None = None
-        self._subtitlePollCount: int = 0
-        self._lastPollSubSig: tuple | None = None
 
         self.requestUpdate.connect(self.doUpdate)
         self.destroyed.connect(self._onDestroyed)
@@ -57,64 +53,9 @@ class MpvFramebufferObject(QQuickFramebufferObject):
 
     @Slot()
     def _onDestroyed(self):
-        self._stopSubtitlePolling()
         if self._renderer:
             self._renderer.cleanup()
             self._renderer = None
-
-    def _stopSubtitlePolling(self) -> None:
-        if self._subtitlePollTimer:
-            self._subtitlePollTimer.stop()
-            self._subtitlePollTimer.deleteLater()
-            self._subtitlePollTimer = None
-
-    def _startSubtitlePolling(self) -> None:
-        self._stopSubtitlePolling()
-        self._subtitlePollTimer = QTimer(self)
-        self._subtitlePollTimer.setInterval(500)
-        self._subtitlePollTimer.timeout.connect(self._pollSubtitleTracks)
-        self._subtitlePollCount = 0
-        self._subtitlePollTimer.start()
-
-    def _pollSubtitleTracks(self) -> None:
-        if not self._mpv:
-            self._stopSubtitlePolling()
-            return
-
-        self._subtitlePollCount += 1
-        if self._subtitlePollCount > 30:
-            logger.debug("Subtitle polling timeout after 15s")
-            self._stopSubtitlePolling()
-            return
-
-        try:
-            tracks = self._mpv.track_list
-        except Exception:
-            return
-
-        if not tracks:
-            return
-
-        subTracks = [t for t in tracks if t.get("type") == "sub"]
-        if subTracks:
-            sig = tuple((t["id"], t.get("lang", "")) for t in subTracks)
-            if sig == self._lastPollSubSig:
-                return
-            self._lastPollSubSig = sig
-            models = [
-                SubtitleModel(
-                    name=t.get("title") or t.get("lang") or f"Track {t['id']}",
-                    trackId=t["id"],
-                    langCode=t.get("lang", ""),
-                )
-                for t in subTracks
-            ]
-            try:
-                self.subtitleTracksChanged.emit(models)
-            except RuntimeError:
-                pass
-            logger.debug("Subtitle tracks found via polling: %s", len(models))
-            self._stopSubtitlePolling()
 
     def createRenderer(self):
         self._renderer = MpvOffscreenRenderer(self)
@@ -125,11 +66,9 @@ class MpvFramebufferObject(QQuickFramebufferObject):
     @Slot(str)
     def setMediaUrl(self, url: str):
         self._mediaUrl = url
-        self._lastPollSubSig = None
-        if self._mpv:
+        if self._renderer:
             try:
-                self._mpv.play(url)
-                self._startSubtitlePolling()
+                self._renderer.play(url)
                 logger.debug("Switched stream to: %s", url)
             except Exception as e:
                 logger.warning("Error switching stream: %s", e)
@@ -143,14 +82,13 @@ class MpvFramebufferObject(QQuickFramebufferObject):
     @Slot(bool)
     def setPlaying(self, playing: bool):
         self._userPaused = not playing
-        if self._mpv:
-            self._mpv.pause = not playing
+        if self._renderer:
+            self._renderer.setPlaying(playing)
 
     @Slot()
     def stop(self):
         self._mediaUrl = ""
         self._userPaused = False
-        self._stopSubtitlePolling()
         logger.info("Explicit stop() called on MpvFramebufferObject")
 
         if self._renderer:
@@ -161,22 +99,16 @@ class MpvFramebufferObject(QQuickFramebufferObject):
                 logger.warning("Error in renderer cleanup during stop(): %s", e)
             self._renderer = None
 
-        if self._mpv:
-            try:
-                self._mpv.stop()
-            except Exception as e:
-                logger.warning("Error stopping MPV directly in stop(): %s", e)
-            self._mpv = None
-
     @Slot(int)
     def setVolume(self, vol: int):
-        if self._mpv:
-            self._mpv.volume = vol
+        if self._renderer:
+            self._renderer.setVolume(vol)
 
     @Slot(int)
     def setSubtitleTrack(self, trackId: int):
-        if self._mpv:
-            self._mpv.sid = "no" if trackId == 0 else trackId
+        logger.info("MpvFramebufferObject.setSubtitleTrack: trackId=%d, renderer=%s", trackId, self._renderer is not None)
+        if self._renderer:
+            self._renderer.setSubtitleTrack(trackId)
 
     # ---- Reconnection ----
 
@@ -202,9 +134,9 @@ class MpvFramebufferObject(QQuickFramebufferObject):
                 pass
 
     def _doReconnect(self):
-        if self._mpv and self._mediaUrl:
+        if self._renderer and self._mediaUrl:
             logger.info("Reconnecting to %s", self._mediaUrl)
-            self._mpv.play(self._mediaUrl)
+            self._renderer.play(self._mediaUrl)
 
 
 @QmlElement
@@ -303,6 +235,7 @@ class MainPlayerController(QObject):
     def stop(self):
         """Stop playback and persist any active watch session."""
         self._endCurrentSession(completed=True)
+        self._resetSubtitleState()
         self._playing = False
         self._setHasMultipleStreams(False)
         self.playingChanged.emit(False)
@@ -311,6 +244,17 @@ class MainPlayerController(QObject):
         if value != self._hasMultipleStreams:
             self._hasMultipleStreams = value
             self.hasMultipleStreamsChanged.emit(value)
+
+    def _resetSubtitleState(self) -> None:
+        """Reset all subtitle state for a new video or stream switch."""
+        self._userSelectedSub = False
+        self._subtitleTracks = []
+        self._hasSubtitles = False
+        self.hasSubtitlesChanged.emit(False)
+        self._subtitlesViewModel.resetItems([])
+        if self._currentSubtitleIndex != 0:
+            self._currentSubtitleIndex = 0
+            self.currentSubtitleIndexChanged.emit(0)
 
     def _endCurrentSession(self, completed: bool) -> None:
         """Persist the active watch session if it lasted long enough.
@@ -353,7 +297,7 @@ class MainPlayerController(QObject):
             return
         self._streamUrls = streams
         self._currentStreamIndex = 0
-        self._userSelectedSub = False
+        self._resetSubtitleState()
         self._setHasMultipleStreams(len(streams) > 1)
         self._streamsViewModel.resetItems(streams)
         self.currentStreamIndexChanged.emit(0)
@@ -369,6 +313,7 @@ class MainPlayerController(QObject):
         if 0 <= index < len(self._streamUrls):
             self._currentStreamIndex = index
             self.currentStreamIndexChanged.emit(index)
+            self._resetSubtitleState()
             self.playUrlRequested.emit(self._streamUrls[index].url)
             logger.info(
                 "Switched to stream %s/%s: %s",
@@ -385,6 +330,11 @@ class MainPlayerController(QObject):
         self._userSelectedSub = index > 0
         self.currentSubtitleIndexChanged.emit(index)
         trackId = 0 if index == 0 else self._subtitleTracks[index - 1].trackId
+        logger.info(
+            "switchSubtitle: index=%d, trackId=%d, model tracks=%s",
+            index, trackId,
+            [(t.trackId, t.name, t.langCode) for t in self._subtitleTracks],
+        )
         self.subtitleTrackChanged.emit(trackId)
 
     @Slot(list)

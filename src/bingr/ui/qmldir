@@ -1,0 +1,5 @@
+module ui
+
+singleton Constants 1.0 Constants.qml
+App 1.0 App.qml
+SplashScreen 1.0 SplashScreen.qml

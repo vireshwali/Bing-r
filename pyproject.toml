@@ -185,7 +185,7 @@ files = [
     "src/bingr/ui/Screens/Home.ui.qml",
     "src/bingr/ui/Screens/PlayerScreen.qml",
     "src/bingr/ui/Screens/Playlists.ui.qml",
-    "src/bingr/ui/Screens/Settings.ui.qml",
+    "src/bingr/ui/Screens/Settings.qml",
     "src/bingr/ui/Screens/SettingsAdvancedPage.qml",
     "src/bingr/ui/Screens/SettingsAppearancePage.qml",
     "src/bingr/ui/Screens/SettingsGeneralPage.qml",

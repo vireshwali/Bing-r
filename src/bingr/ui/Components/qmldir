@@ -1,0 +1,37 @@
+module ui.Components
+
+LeftNavMenuButton 1.0 LeftNavMenuButton.ui.qml
+CollapseLeftNavButton 1.0 CollapseLeftNavButton.ui.qml
+OpenLeftNavButton 1.0 OpenLeftNavButton.ui.qml
+IconButton 1.0 IconButton.ui.qml
+IconButtonWithText 1.0 IconButtonWithText.ui.qml
+NormalButton 1.0 NormalButton.ui.qml
+CustomTextInputField 1.0 CustomTextInputField.ui.qml
+CustomTextInputFieldWithIcon 1.0 CustomTextInputFieldWithIcon.ui.qml
+CustomBusyIndicator 1.0 CustomBusyIndicator.ui.qml
+SeparatorRect 1.0 SeparatorRect.ui.qml
+TagText 1.0 TagText.ui.qml
+TopNavComboBox 1.0 TopNavComboBox.ui.qml
+CarouselArrow 1.0 CarouselArrow.ui.qml
+HorizontalPager 1.0 HorizontalPager.ui.qml
+ChannelsTopNav 1.0 ChannelsTopNav.ui.qml
+ChannelsHeroSection 1.0 ChannelsHeroSection.ui.qml
+ChannelsGrid 1.0 ChannelsGrid.ui.qml
+ChannelsGridCard 1.0 ChannelsGridCard.ui.qml
+MainPlayer 1.0 MainPlayer.ui.qml
+FavoritesTopNav 1.0 FavoritesTopNav.ui.qml
+ConfirmDialog 1.0 ConfirmDialog.qml
+SettingsToggle 1.0 SettingsToggle.qml
+SettingsComboBox 1.0 SettingsComboBox.qml
+SettingsSlider 1.0 SettingsSlider.qml
+SettingsSpinBox 1.0 SettingsSpinBox.qml
+SettingsTextField 1.0 SettingsTextField.qml
+SettingsFolderPicker 1.0 SettingsFolderPicker.qml
+SettingsFooterBar 1.0 SettingsFooterBar.qml
+BentoGridCard 1.0 BentoGridCard.ui.qml
+PagerCard 1.0 PagerCard.ui.qml
+CommonDialog 1.0 CommonDialog.ui.qml
+CustomSwitch 1.0 CustomSwitch.ui.qml
+
+SettingsGeneral 1.0 SettingsGeneral.ui.qml
+SettingsHome 1.0 SettingsHome.ui.qml

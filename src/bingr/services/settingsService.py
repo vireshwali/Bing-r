@@ -1,26 +1,27 @@
-"""Settings service — wraps QSettings (INI file in the app config folder) for user settings persistence.
+"""Settings service — persistence for the SettingsModel via the DB key-value store.
 
-Storage for now: ``<projectRoot>/config/settings.conf`` (INI). A later iteration will
-move to the platform-native QSettings default location (QStandardPaths).
+Uses the ``settings`` table (key/value with JSON values). Methods accept and
+return ``SettingsModel`` instances; the DB keys are the dataclass field names.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import logging
-from pathlib import Path
 from typing import Any
 
-from PySide6.QtCore import QObject, QSettings, Slot
-from PySide6.QtQml import QmlElement
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-QML_IMPORT_NAME = "bingr.services"
-QML_IMPORT_MAJOR_VERSION = 1
+from bingr.db.dbManager import DatabaseManager
+from bingr.db.models import Settings
+from bingr.ui_models.settigsModel import SettingsModel
 
 logger = logging.getLogger(__name__)
 
-SETTINGS_FILE_NAME = "settings.conf"
 
-# Default values for every supported setting key (group/key).
+# ── Reference only — used to seed new settings when extending SettingsModel ──
+# fmt: off
 DEFAULT_VALUES: dict[str, Any] = {
     # ── General ─────────────────────────────────────────────────
     "general/language": "system",
@@ -89,6 +90,7 @@ DEFAULT_VALUES: dict[str, Any] = {
     "advanced/mpvLogLevel": "warn",
     "advanced/debugMpvProps": False,
     "advanced/experimental": False,
+    "advanced/ffprobePath": "ffprobe",
     # ── Bingr-specific ──────────────────────────────────────────
     "bingr/heroAutoRefresh": True,
     "bingr/heroRefreshIntervalMin": 30,
@@ -99,9 +101,9 @@ DEFAULT_VALUES: dict[str, Any] = {
     "bingr/defaultSort": "name",
     "bingr/collapseGroups": False,
 }
+# fmt: on
 
-# Keys whose change takes effect only after an application restart
-# (MPV init, DB open, Constants.qml / logging setup are startup-time).
+# Keys whose change takes effect only after an application restart.
 RESTART_REQUIRED_KEYS: frozenset[str] = frozenset(
     {
         "general/language",
@@ -120,52 +122,63 @@ RESTART_REQUIRED_KEYS: frozenset[str] = frozenset(
 )
 
 
-def defaultSettingsPath() -> Path:
-    """Return the INI storage path under the platform config dir (XDG-aware)."""
-    from bingr.common.config import getConfig
-    return getConfig().configDir() / SETTINGS_FILE_NAME
+def _fieldDefaults() -> dict[str, Any]:
+    """Return ``{fieldName: defaultValue}`` for every field in SettingsModel."""
+    return {f.name: f.default for f in dataclasses.fields(SettingsModel)}
 
 
-@QmlElement
-class SettingsService(QObject):
-    """Persistence facade over ``QSettings`` (INI format) with known defaults.
+class SettingsService:
+    def __init__(self) -> None:
+        self._sm: async_sessionmaker[AsyncSession] = DatabaseManager.get_sessionmaker()
 
-    Non-singleton: the SettingsController owns a single instance and exposes it
-    to QML. Methods are ``@Slot``-decorated so the UI can reach the service
-    directly through the controller's ``service`` property.
-    """
+    # ── Read ────────────────────────────────────────────────────────────
 
-    def __init__(self, parent: QObject | None = None, settingsPath: Path | str | None = None) -> None:
-        super().__init__(parent)
-        path = Path(settingsPath) if settingsPath else defaultSettingsPath()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        self._settings = QSettings(str(path), QSettings.Format.IniFormat)
+    async def get(self, key: str) -> Any:
+        """Return the stored value for *key*, or the ``SettingsModel`` field default."""
+        defaults = _fieldDefaults()
+        async with self._sm() as session:
+            stmt = select(Settings.value).where(Settings.key == key)
+            result = (await session.execute(stmt)).scalar_one_or_none()
+        if result is not None:
+            return result
+        return defaults.get(key)
 
-    @Slot(str, result=bool)
-    def contains(self, key: str) -> bool:
-        return self._settings.contains(key)
+    async def loadAll(self) -> SettingsModel:
+        """Return a ``SettingsModel`` populated from the DB (missing fields get defaults)."""
+        async with self._sm() as session:
+            stmt = select(Settings)
+            rows = (await session.execute(stmt)).scalars().all()
+        stored = {row.key: row.value for row in rows}
+        defaults = _fieldDefaults()
+        kwargs = {name: stored.get(name, defaults.get(name)) for name in defaults}
+        return SettingsModel(**kwargs)
 
-    @Slot(str, result="QVariant")
-    def get(self, key: str, default: Any = None) -> Any:
-        """Return the stored value for ``key``, falling back to default then the known default."""
-        if self.contains(key):
-            return self._settings.value(key)
-        if key in DEFAULT_VALUES:
-            return DEFAULT_VALUES[key]
-        return default
+    # ── Write ───────────────────────────────────────────────────────────
 
-    @Slot(str, "QVariant")
-    def set(self, key: str, value: Any) -> None:
-        self._settings.setValue(key, value)
-        logger.debug("settings set %s = %r", key, value)
+    async def setBulk(self, model: SettingsModel) -> None:
+        """Delete all settings and re-insert from *model* (full form submit)."""
+        async with self._sm() as session:
+            await session.execute(delete(Settings))
+            for f in dataclasses.fields(model):
+                session.add(Settings(key=f.name, value=getattr(model, f.name)))
+            await session.commit()
+        logger.info("settings: setBulk saved %d keys", len(dataclasses.fields(model)))
 
-    @Slot(str, result=bool)
+    # ── Utility ─────────────────────────────────────────────────────────
+
+    async def contains(self, key: str) -> bool:
+        """Return ``True`` if *key* exists in the DB."""
+        async with self._sm() as session:
+            stmt = select(Settings.key).where(Settings.key == key).limit(1)
+            return (await session.execute(stmt)).scalar_one_or_none() is not None
+
+    async def resetToDefaults(self) -> None:
+        """Delete every row so all keys revert to ``SettingsModel`` defaults."""
+        async with self._sm() as session:
+            await session.execute(delete(Settings))
+            await session.commit()
+        logger.info("settings: reset to defaults")
+
     def requiresRestart(self, key: str) -> bool:
+        """Return ``True`` if changing *key* needs an app restart."""
         return key in RESTART_REQUIRED_KEYS
-
-    @Slot()
-    def resetToDefaults(self) -> None:
-        """Clear all persisted keys so every lookup returns the known default."""
-        self._settings.clear()
-        self._settings.sync()
-        logger.info("settings reset to defaults")
