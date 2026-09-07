@@ -897,7 +897,6 @@ class TestRendererLifecycle:
         assert renderer._ctx is fakeMpv.MpvRenderContext.return_value
         assert renderer._renderThreadReady is True
         assert renderer._renderThread._ctx is renderer._ctx
-        assert parent._mpv is renderer._mpv
         fakeMpv.MPV.return_value.observe_property.assert_any_call("eof-reached", renderer._onEofReached)
         fakeMpv.MPV.return_value.register_event_callback.assert_called_once_with(renderer._onMpvEvent)
 

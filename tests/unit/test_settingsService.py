@@ -1,68 +1,138 @@
-from pathlib import Path
+"""Unit tests for SettingsService — DB-backed get/setBulk/loadAll/reset."""
+
+import dataclasses
 
 import pytest
 
-from bingr.services.settingsService import DEFAULT_VALUES, RESTART_REQUIRED_KEYS, SettingsService
+from bingr.db.dbManager import DatabaseManager
+from bingr.db.models import Settings
+from bingr.services.settingsService import SettingsService
+from bingr.ui_models.settigsModel import SettingsModel
+
+_CREATE_SETTINGS_TABLE = """\
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value JSON,
+    created_at TEXT,
+    updated_at TEXT
+)
+"""
 
 
 class TestSettingsService:
-    @pytest.fixture
-    def service(self, tmp_path: Path) -> SettingsService:
-        return SettingsService(settingsPath=tmp_path / "settings.conf")
+    @pytest.fixture(autouse=True)
+    def _setupDb(self, tmp_path):
+        dbPath = tmp_path / "settings_test.db"
+        DatabaseManager._engine = None
+        DatabaseManager._sessionmaker = None
+        DatabaseManager.initialize(dbPath)
+        # Create the settings table via raw SQL (no Alembic migration for it yet)
+        import sqlite3
 
-    def testGetUnknownKeyReturnsDefault(self, service: SettingsService):
-        assert service.get("nosuch/key") is None
-        assert service.get("nosuch/key", "fallback") == "fallback"
+        conn = sqlite3.connect(str(dbPath))
+        conn.execute(_CREATE_SETTINGS_TABLE)
+        conn.commit()
+        conn.close()
+        self._service = SettingsService()
+        yield
+        DatabaseManager.shutdownSync()
 
-    def testGetKnownDefault(self, service: SettingsService):
-        assert service.get("general/language") == "system"
-        assert service.get("playback/defaultVolume") == 50
+    # ── get ────────────────────────────────────────────────────────────
 
-    def testSetAndGet(self, service: SettingsService):
-        service.set("general/language", "fr")
-        assert service.get("general/language") == "fr"
+    async def testGetUnknownKeyReturnsFieldDefault(self):
+        value = await self._service.get("homeScreenContinueWatchingChannelsSize")
+        assert value == SettingsModel.homeScreenContinueWatchingChannelsSize
 
-    def testContains(self, service: SettingsService):
-        assert not service.contains("general/language")
-        service.set("general/language", "fr")
-        assert service.contains("general/language")
+    async def testGetUnknownKeyReturnsNoneForNonField(self):
+        value = await self._service.get("no/such/key")
+        assert value is None
 
-    def testPersistsAcrossInstances(self, tmp_path: Path):
-        path = tmp_path / "settings.conf"
-        SettingsService(settingsPath=path).set("playback/volumeStep", 7)
-        second = SettingsService(settingsPath=path)
-        assert second.get("playback/volumeStep") == 7
+    async def testGetStoredKeyReturnsStoredValue(self):
+        model = SettingsModel(homeScreenContinueWatchingChannelsSize=20)
+        await self._service.setBulk(model)
+        value = await self._service.get("homeScreenContinueWatchingChannelsSize")
+        assert value == 20
 
-    def testResetToDefaults(self, service: SettingsService):
-        service.set("general/language", "fr")
-        service.set("playback/defaultVolume", 80)
-        service.resetToDefaults()
-        assert not service.contains("general/language")
-        assert not service.contains("playback/defaultVolume")
+    # ── loadAll ────────────────────────────────────────────────────────
 
-    def testRequiresRestartPositive(self, service: SettingsService):
-        assert service.requiresRestart("playback/hwdec")
+    async def testLoadAllEmptyDbReturnsDefaults(self):
+        model = await self._service.loadAll()
+        assert isinstance(model, SettingsModel)
+        assert model.homeScreenContinueWatchingChannelsSize == 15
+        assert model.hideNotWorkingChannelsWithOneFeed is False
 
-    def testRequiresRestartNegative(self, service: SettingsService):
-        assert not service.requiresRestart("playback/defaultVolume")
+    async def testLoadAllMergesStoredValues(self):
+        model = SettingsModel(
+            homeScreenContinueWatchingChannelsSize=22,
+            hideNotWorkingChannelsWithOneFeed=True,
+        )
+        await self._service.setBulk(model)
+        loaded = await self._service.loadAll()
+        assert loaded.homeScreenContinueWatchingChannelsSize == 22
+        assert loaded.hideNotWorkingChannelsWithOneFeed is True
+        # Other fields stay at defaults
+        assert loaded.homeScreenCategory1ChannelsSize == 15
 
+    # ── setBulk ────────────────────────────────────────────────────────
 
-class TestSettingsDefaults:
-    def testAllRestartKeysAreKnownDefaults(self):
-        assert RESTART_REQUIRED_KEYS.issubset(DEFAULT_VALUES.keys())
+    async def testSetBulkPersistsAllFields(self):
+        model = SettingsModel(homeScreenCategory1ChannelsSize=12)
+        await self._service.setBulk(model)
+        value = await self._service.get("homeScreenCategory1ChannelsSize")
+        assert value == 12
 
-    def testEveryDefaultKeyHasSlashGroup(self):
-        for key in DEFAULT_VALUES:
-            assert "/" in key
-            group, _name = key.split("/", 1)
-            assert group in {
-                "general",
-                "playback",
-                "network",
-                "library",
-                "epg",
-                "appearance",
-                "privacy",
-                "advanced",
-                "bingr",
-            }
+    async def testSetBulkReplacesPreviousValues(self):
+        model1 = SettingsModel(homeScreenContinueWatchingChannelsSize=20)
+        await self._service.setBulk(model1)
+        model2 = SettingsModel(homeScreenContinueWatchingChannelsSize=8)
+        await self._service.setBulk(model2)
+        value = await self._service.get("homeScreenContinueWatchingChannelsSize")
+        assert value == 8
+
+    async def testSetBulkFieldCountMatchesModel(self):
+        model = SettingsModel()
+        await self._service.setBulk(model)
+        expectedFields = len(dataclasses.fields(SettingsModel))
+        from sqlalchemy import func, select
+
+        async with self._service._sm() as session:
+            count = (
+                await session.execute(
+                    select(func.count()).select_from(Settings)
+                )
+            ).scalar_one()
+        assert count == expectedFields
+
+    # ── contains ───────────────────────────────────────────────────────
+
+    async def testContainsFalseForEmptyDb(self):
+        assert await self._service.contains("homeScreenContinueWatchingChannelsSize") is False
+
+    async def testContainsTrueAfterSetBulk(self):
+        model = SettingsModel()
+        await self._service.setBulk(model)
+        assert await self._service.contains("homeScreenContinueWatchingChannelsSize") is True
+
+    # ── resetToDefaults ────────────────────────────────────────────────
+
+    async def testResetToDefaultsClearsAll(self):
+        model = SettingsModel(homeScreenContinueWatchingChannelsSize=99)
+        await self._service.setBulk(model)
+        await self._service.resetToDefaults()
+        value = await self._service.get("homeScreenContinueWatchingChannelsSize")
+        assert value == SettingsModel.homeScreenContinueWatchingChannelsSize
+
+    async def testLoadAllAfterResetReturnsDefaults(self):
+        model = SettingsModel(hideNotWorkingChannelsWithOneFeed=True)
+        await self._service.setBulk(model)
+        await self._service.resetToDefaults()
+        loaded = await self._service.loadAll()
+        assert loaded.hideNotWorkingChannelsWithOneFeed is False
+
+    # ── requiresRestart ────────────────────────────────────────────────
+
+    def testRequiresRestartTrueForKnownKey(self):
+        assert self._service.requiresRestart("general/language") is True
+
+    def testRequiresRestartFalseForUnknownKey(self):
+        assert self._service.requiresRestart("playback/defaultVolume") is False
