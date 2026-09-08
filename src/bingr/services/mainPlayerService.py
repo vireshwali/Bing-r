@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Generator
 from contextlib import _GeneratorContextManager, contextmanager
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import QMutex, QSize, QThread, QWaitCondition, Signal, Slot
 from PySide6.QtGui import QOffscreenSurface, QOpenGLContext
