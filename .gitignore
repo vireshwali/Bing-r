@@ -74,3 +74,5 @@ flatpak/requirements.txt
 flatpak/LOCAL-BUILD.md
 .opencode
 build.log
+SETTINGS_PLAN.md
+src/bingr/mpvMemoryTest.py
