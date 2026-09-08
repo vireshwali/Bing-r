@@ -1,6 +1,6 @@
 # Bing-r
 
-[![Release](https://img.shields.io/github/release/vireshwali/Bing-r.svg?style=for-the-badge&logo=github)](https://github.com/vireshwali/Bing-r/releases) &nbsp; [![Python](https://img.shields.io/badge/python-3.12+-blue.svg?style=for-the-badge&logo=python)](https://python.org) &nbsp; [![Qt](https://img.shields.io/badge/Qt-6.11-green.svg?style=for-the-badge&logo=qt)](https://qt.io) &nbsp; [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/vireshwali/Bing-r/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/vireshwali/Bing-r/actions/workflows/ci.yml) &nbsp; [![codecov](https://img.shields.io/codecov/c/github/vireshwali/Bing-r?style=for-the-badge&logo=codecov&color=brightgreen)](https://codecov.io/gh/vireshwali/Bing-r) &nbsp; [![Release](https://img.shields.io/github/release/vireshwali/Bing-r.svg?style=for-the-badge&logo=github)](https://github.com/vireshwali/Bing-r/releases) &nbsp; [![Python](https://img.shields.io/badge/python-3.12+-blue.svg?style=for-the-badge&logo=python)](https://python.org) &nbsp; [![Qt](https://img.shields.io/badge/Qt-6.11-green.svg?style=for-the-badge&logo=qt)](https://qt.io) &nbsp; [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 🌐 **Website** (coming soon) | **Discord/Telegram** (coming soon) | **Flatpak** (coming soon) | [Report Issues](https://github.com/vireshwali/Bing-r/issues)
 

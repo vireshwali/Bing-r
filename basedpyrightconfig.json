@@ -1,0 +1,8 @@
+{
+  "include": ["src/bingr"],
+  "exclude": ["**/__pycache__", "**/poc", "**/ui", "**/qml_resources*"],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "pythonVersion": "3.12"
+}

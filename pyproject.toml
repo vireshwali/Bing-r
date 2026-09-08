@@ -236,4 +236,8 @@ markers = [
 source = ["src/bingr"]
 omit = ["*/poc/*", "*/ui/*", "*/qml_resources*"]
 
+# TODO: Uncomment fail_under once coverage is stable across all tests.
+# [tool.coverage.report]
+# fail_under = 90
+
 
