@@ -1,6 +1,6 @@
 [project]
 name = "Bing-r"
-version = "v1.4.1-Hangul"
+version = "1.5.1"
 description = "A modern desktop IPTV and media player/manager application built with Python, PySide6, and Qt Quick/QML. Designed as a high-performance, desktop-native media client focused on Live TV, VOD, library management, playback, discovery, and community-style metadata/reviews."
 readme = "README.md"
 requires-python = ">=3.12"
