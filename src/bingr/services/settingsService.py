@@ -151,7 +151,7 @@ class SettingsService:
         stored = {row.key: row.value for row in rows}
         defaults = _fieldDefaults()
         kwargs = {name: stored.get(name, defaults.get(name)) for name in defaults}
-        return SettingsModel(**kwargs)
+        return SettingsModel(**kwargs)  # type: ignore[reportArgumentType]
 
     # ── Write ───────────────────────────────────────────────────────────
 

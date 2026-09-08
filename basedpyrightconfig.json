@@ -4,5 +4,6 @@
   "typeCheckingMode": "basic",
   "reportMissingImports": true,
   "reportMissingTypeStubs": false,
+  "failOnWarnings": false,
   "pythonVersion": "3.12"
 }

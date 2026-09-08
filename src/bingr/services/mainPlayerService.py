@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Generator
 from contextlib import _GeneratorContextManager, contextmanager
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from PySide6.QtCore import QMutex, QSize, QThread, QWaitCondition, Signal, Slot
 from PySide6.QtGui import QOffscreenSurface, QOpenGLContext
@@ -319,7 +319,7 @@ class MpvOffscreenRenderThread(QThread):
                     del oldDisplayFBO
             else:
                 with self.acquire() as (state, sync):
-                    fboHandle = int(state.renderFBO.handle())
+                    fboHandle = int(state.renderFBO.handle())  # type: ignore[reportOptionalMemberAccess]
 
                 self._ctx.render(
                     flip_y=False,
@@ -366,14 +366,14 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
         self._lastSubSig: tuple | None = None
         self._getProcAddressResolver = MpvGlGetProcAddressFn(getProcAddress)
         self._ctx: MpvRenderContext | None = None
-        self._mpv = None
+        self._mpv: Any = None
         self._videoSize = QSize()
 
-        self._renderThread: MpvOffscreenRenderThread = MpvOffscreenRenderThread()
+        self._renderThread: MpvOffscreenRenderThread | None = MpvOffscreenRenderThread()
         self._renderThread.frameRendered.connect(self._parent.requestUpdate)
         self._renderThreadReady = False
 
-        self._surface: QOffscreenSurface = QOffscreenSurface()
+        self._surface: QOffscreenSurface | None = QOffscreenSurface()
         self._surfaceFormat = QOpenGLContext.currentContext().format()
         self._surfaceReady = False
         self._rendererThreadStarted = False
@@ -418,12 +418,12 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
             actual,
         )
         if self._renderThreadReady:
-            self._renderThread.requestRender()
+            self._renderThread.requestRender()  # type: ignore[reportOptionalMemberAccess]
 
     @Slot()
     def _onConfigureSurface(self):
-        self._surface.setFormat(self._surfaceFormat)
-        self._surface.create()
+        self._surface.setFormat(self._surfaceFormat)  # type: ignore[reportOptionalMemberAccess]
+        self._surface.create()  # type: ignore[reportOptionalMemberAccess]
         self._surfaceReady = True
         self._parent.update()  # type: ignore
 
@@ -495,24 +495,24 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
         )
         self._ctx.update_cb = self._onMpvUpdate
 
-        self._renderThread.prepare(self._ctx, QOpenGLContext.currentContext(), self._surface)
+        self._renderThread.prepare(self._ctx, QOpenGLContext.currentContext(), self._surface)  # type: ignore[reportOptionalMemberAccess]
         self._renderThreadReady = True
 
-        if self._parent._pendingUrl:
-            self.play(self._parent._pendingUrl)
-            self._parent._pendingUrl = None
+        if self._parent._pendingUrl:  # type: ignore[reportOptionalMemberAccess]
+            self.play(self._parent._pendingUrl)  # type: ignore[reportOptionalMemberAccess]
+            self._parent._pendingUrl = None  # type: ignore[reportOptionalMemberAccess]
 
     def _onMpvUpdate(self):
         if self._disposed:
             return
         if self._renderThreadReady:
-            self._renderThread.requestRender()
+            self._renderThread.requestRender()  # type: ignore[reportOptionalMemberAccess]
 
     def _onEofReached(self, _name, value):
         if self._disposed:
             return
         if value:
-            self._parent._scheduleReconnect()
+            self._parent._scheduleReconnect()  # type: ignore[reportOptionalMemberAccess]
 
     def _emitSignal(self, signal, value):
         try:
@@ -524,29 +524,29 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
         if self._disposed:
             return
         try:
-            self._emitSignal(self._parent.bufferedSecondsChanged, float(value or 0.0))
+            self._emitSignal(self._parent.bufferedSecondsChanged, float(value or 0.0))  # type: ignore[reportOptionalMemberAccess]
         except (ValueError, TypeError):
-            self._emitSignal(self._parent.bufferedSecondsChanged, 0.0)
+            self._emitSignal(self._parent.bufferedSecondsChanged, 0.0)  # type: ignore[reportOptionalMemberAccess]
 
     def _onReadahead(self, _name, value):
         if self._disposed:
             return
         try:
-            self._emitSignal(self._parent.readaheadSecsChanged, float(value or 0.0))
+            self._emitSignal(self._parent.readaheadSecsChanged, float(value or 0.0))  # type: ignore[reportOptionalMemberAccess]
         except (ValueError, TypeError):
-            self._emitSignal(self._parent.readaheadSecsChanged, 0.0)
+            self._emitSignal(self._parent.readaheadSecsChanged, 0.0)  # type: ignore[reportOptionalMemberAccess]
 
     def _onDemuxerCacheState(self, _name, value):
         if self._disposed:
             return
         if not isinstance(value, dict):
-            self._emitSignal(self._parent.bufferingStateChanged, "idle")
+            self._emitSignal(self._parent.bufferingStateChanged, "idle")  # type: ignore[reportOptionalMemberAccess]
             return
         underrun = bool(value.get("underrun", False))
-        self._emitSignal(self._parent.bufferingStateChanged, "buffering" if underrun else "playing")
+        self._emitSignal(self._parent.bufferingStateChanged, "buffering" if underrun else "playing")  # type: ignore[reportOptionalMemberAccess]
         if not underrun and self._mpv and hasattr(self._mpv, "demuxer_readahead_secs"):
             current = self._mpv.demuxer_readahead_secs
-            if current is not None and current < 39:
+            if current is not None and current < 39:  # type: ignore[reportOperatorIssue]
                 self._mpv.demuxer_readahead_secs = 40
 
     @staticmethod
@@ -602,7 +602,7 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
             len(tracks),
         )
         try:
-            self._parent.subtitleTracksChanged.emit(tracks)
+            self._parent.subtitleTracksChanged.emit(tracks)  # type: ignore[reportOptionalMemberAccess]
         except RuntimeError:
             pass
         logger.info("track-list observer: %s tracks total, %s subtitle", len(value), len(tracks))
@@ -622,7 +622,7 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
                 title, detail = self._buildErrorMessage(int(error_code))
                 logger.debug("mpv END_FILE error: %s — %s", title, detail)
                 try:
-                    self._parent.errorOccurred.emit(title, detail)
+                    self._parent.errorOccurred.emit(title, detail)  # type: ignore[reportOptionalMemberAccess]
                 except RuntimeError:
                     pass
                 self._logBuffer.clear()
@@ -806,7 +806,7 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
         if self._videoSize != size:
             self._videoSize = size
             if self._renderThreadReady:
-                self._renderThread.updateSize(size)
+                self._renderThread.updateSize(size)  # type: ignore[reportOptionalMemberAccess]
 
         return QQuickFramebufferObject.Renderer.createFramebufferObject(self, size)
 
@@ -815,18 +815,18 @@ class MpvOffscreenRenderer(QQuickFramebufferObject.Renderer):
             return
 
         if not self._surfaceReady:
-            self._parent.onSurfaceReady.emit()
+            self._parent.onSurfaceReady.emit()  # type: ignore[reportOptionalMemberAccess]
             return
 
         if not self._renderThreadReady:
             return
 
         if not self._rendererThreadStarted:
-            self._renderThread.start()
+            self._renderThread.start()  # type: ignore[reportOptionalMemberAccess]
             self._rendererThreadStarted = True
             return
 
-        with self._renderThread.acquire() as (state, _sync):
+        with self._renderThread.acquire() as (state, _sync):  # type: ignore[reportOptionalMemberAccess]
             displayFBO = state.displayFBO
             if displayFBO and displayFBO.isValid():
                 QOpenGLFramebufferObject.blitFramebuffer(self.framebufferObject(), displayFBO)

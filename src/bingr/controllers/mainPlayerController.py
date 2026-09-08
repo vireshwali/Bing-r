@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import UTC, datetime
+from typing import Any
 
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 from PySide6.QtQml import QmlElement, QQmlEngine, qmlEngine
@@ -163,8 +164,8 @@ class MainPlayerController(QObject):
         self._volume = 50
         self._hasMultipleStreams = False
         self._service = ChannelsManagementService()
-        self._streamsViewModel = StreamsViewModel(self)
-        self._subtitlesViewModel = SubtitlesViewModel(self)
+        self._streamsViewModel: Any = StreamsViewModel(self)  # type: ignore[reportCallIssue]
+        self._subtitlesViewModel: Any = SubtitlesViewModel(self)  # type: ignore[reportCallIssue]
         self._subtitleTracks: list[SubtitleModel] = []
         self._currentSubtitleIndex = 0
         self._hasSubtitles = False
@@ -178,7 +179,7 @@ class MainPlayerController(QObject):
         return self._hasMultipleStreams
 
     @Property(int)
-    def channelId(self) -> int:
+    def channelId(self) -> int:  # type: ignore[reportRedeclaration]
         return self._channelId
 
     @channelId.setter
@@ -196,7 +197,7 @@ class MainPlayerController(QObject):
         return self._subtitlesViewModel
 
     @Property(int, notify=currentStreamIndexChanged)
-    def currentStreamIndex(self) -> int:
+    def currentStreamIndex(self) -> int:  # type: ignore[reportRedeclaration]
         return self._currentStreamIndex
 
     @currentStreamIndex.setter

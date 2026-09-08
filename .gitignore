@@ -67,8 +67,7 @@ build_report.xml
 docs/superpowers
 
 # Flatpak build artifacts
-flatpak-build/
-.flatpak-builder/
+flatpak_bingr_build/
 flatpak/requirements.txt
 flatpak/LOCAL-BUILD.md
 .opencode

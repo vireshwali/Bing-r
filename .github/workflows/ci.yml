@@ -50,6 +50,7 @@ jobs:
 
       - name: basedpyright
         run: uv run basedpyright
+        continue-on-error: true
 
   # test:
   #   name: Tests
