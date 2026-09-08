@@ -161,9 +161,7 @@ class TestFilters:
 
         ctrl.applyFilters()
 
-        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [
-            {"category": "News", "quality": "hd"}
-        ]
+        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [{"category": "News", "quality": "hd"}]
 
     def testApplyFiltersWithSearchAddsSearchTerm(self):
         ctrl = makeController()
@@ -173,9 +171,7 @@ class TestFilters:
         ctrl.applyFiltersWithSearch("sports")
 
         assert ctrl._searchText == "sports"
-        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [
-            {"country": "IN", "search": "sports"}
-        ]
+        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [{"country": "IN", "search": "sports"}]
 
     def testApplyFiltersWithSearchIncludesCategoryAndQuality(self):
         ctrl = makeController()
@@ -197,9 +193,7 @@ class TestFilters:
 
         ctrl.applyFilters()
 
-        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [
-            {"category": "Movies", "search": "news"}
-        ]
+        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [{"category": "Movies", "search": "news"}]
 
     def testApplyFiltersCountryOnlySelection(self):
         ctrl = makeController()
@@ -208,9 +202,7 @@ class TestFilters:
 
         ctrl.applyFilters()
 
-        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [
-            {"country": "US"}
-        ]
+        assert ctrl._channelsGridViewModel.filtersHistory[initialLoads:] == [{"country": "US"}]
 
 
 class TestErrorProperty:

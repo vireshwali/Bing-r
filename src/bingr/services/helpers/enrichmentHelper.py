@@ -131,11 +131,7 @@ def isCountryName(value: str) -> bool:
         return False
     data = getFileCache().load("countries")
     lower = value.lower().strip()
-    return any(
-        lower == c.get("name", "").lower()
-        or lower == c.get("code", "").lower()
-        for c in data
-    )
+    return any(lower == c.get("name", "").lower() or lower == c.get("code", "").lower() for c in data)
 
 
 def lookupChannel(tvg_id: str) -> dict[str, Any] | None:
@@ -231,7 +227,9 @@ def _scoreFeed(feed: dict[str, Any], suffix: str, suffixFmt: str | None, suffixR
     return score
 
 
-def _scoreCandidates(feeds: list[dict[str, Any]], suffix: str, suffixFmt: str | None, suffixRegion: str | None) -> list[tuple[dict[str, Any], int]]:
+def _scoreCandidates(
+    feeds: list[dict[str, Any]], suffix: str, suffixFmt: str | None, suffixRegion: str | None
+) -> list[tuple[dict[str, Any], int]]:
     scored = [(_scoreFeed(f, suffix, suffixFmt, suffixRegion), f) for f in feeds]
     scored.sort(key=lambda x: x[0], reverse=True)
     return [(f, s) for s, f in scored]
@@ -275,10 +273,7 @@ def matchFeed(tvg_id: str, feeds: list[dict[str, Any]]) -> dict[str, Any] | None
     if candidates:
         return candidates[0][0]
 
-    logger.warning(
-        "feed match: suffix=%r scored 0 on all %d feeds, falling back to is_main/first",
-        suffix, len(feeds)
-    )
+    logger.warning("feed match: suffix=%r scored 0 on all %d feeds, falling back to is_main/first", suffix, len(feeds))
     return next((f for f in feeds if f.get("is_main")), feeds[0])
 
 
@@ -332,14 +327,15 @@ def enrichSegment(segment) -> dict[str, Any]:
     result["country"] = channelCountry
 
     if not tvg_id:
-        logger.warning("enrich: no tvg_id for segment title=%r, uri=%s", raw_title, segment.uri[:80] if segment.uri else "N/A")
+        logger.warning(
+            "enrich: no tvg_id for segment title=%r, uri=%s", raw_title, segment.uri[:80] if segment.uri else "N/A"
+        )
         return result
 
     ch = lookupChannel(tvg_id)
     if not ch:
         logger.warning("enrich: channel not found for tvg_id=%r (channel_id=%r)", tvg_id, stripSuffix(tvg_id))
         return result
-
 
     chCats = _expandCategories(ch.get("categories", []))
     iptvCountry = _expandCountry(ch.get("country", "")) if ch.get("country") else None

@@ -201,9 +201,7 @@ class TestValidateSingle(FfprobeTestBase):
     async def testOnResultCallbackInvoked(self, service, procFactory):
         calls = []
         url = "https://example.com/cb.m3u8"
-        task = asyncio.create_task(
-            service.validate(url, onResult=lambda u, ok, reason: calls.append((u, ok, reason)))
-        )
+        task = asyncio.create_task(service.validate(url, onResult=lambda u, ok, reason: calls.append((u, ok, reason))))
         assert await self._waitForProcs(procFactory.procs)
 
         self._fireFinished(procFactory.procs[0], exitCode=0)

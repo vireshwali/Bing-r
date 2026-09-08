@@ -21,6 +21,7 @@ API_FILES: dict[str, tuple[str, str]] = {
     "cities": ("cities.json", "https://iptv-org.github.io/api/cities.json"),
 }
 
+
 # ViewModel roles for targeted event delivery
 class ViewModelRole:
     HERO_SECTION = "heroSection"

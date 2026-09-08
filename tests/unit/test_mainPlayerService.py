@@ -612,10 +612,12 @@ class TestErrorMessageBuilders:
         assert self._renderer()._extractErrorDetail() == ""
 
     def testExtractErrorDetailPrefersHttpOverNetwork(self):
-        renderer = self._renderer([
-            "[tcp] Connection refused",
-            "[http] Failed to open https://x: Server returned 404 Not Found",
-        ])
+        renderer = self._renderer(
+            [
+                "[tcp] Connection refused",
+                "[http] Failed to open https://x: Server returned 404 Not Found",
+            ]
+        )
         detail = renderer._extractErrorDetail()
         assert "HTTP 404" in detail
 
@@ -1055,7 +1057,16 @@ class TestCleanupTeardown:
         assert renderer._ctx is None
         assert renderer._mpv is None
         assert renderer._surface is None
-        assert calls == ["stop", "thread_cleanup", "free", "unregister", "mpv_stop", "mpv_terminate", "disconnect", "destroy"]
+        assert calls == [
+            "stop",
+            "thread_cleanup",
+            "free",
+            "unregister",
+            "mpv_stop",
+            "mpv_terminate",
+            "disconnect",
+            "destroy",
+        ]
         assert mpvPlayer.unobserve_property.call_count == 4
 
     def testCleanupToleratesErrorsEverywhere(self, glEnv, parent):

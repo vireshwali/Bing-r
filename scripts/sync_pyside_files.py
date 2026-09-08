@@ -32,12 +32,12 @@ def collect_files() -> list[str]:
 
 
 def make_files_block(paths: list[str]) -> str:
-    lines = ['[tool.pyside6-project]']
-    lines.append('files = [')
+    lines = ["[tool.pyside6-project]"]
+    lines.append("files = [")
     for p in paths:
         lines.append(f'    "{p}",')
-    lines.append(']')
-    return '\n'.join(lines)
+    lines.append("]")
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -53,7 +53,7 @@ def main() -> int:
     new_block = make_files_block(files)
 
     text, n = re.subn(
-        r'\[tool\.pyside6-project\].*?(?=\n\[|\Z)',
+        r"\[tool\.pyside6-project\].*?(?=\n\[|\Z)",
         new_block,
         text,
         count=1,

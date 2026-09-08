@@ -23,7 +23,7 @@ def splitExtinfPayload(payload: str) -> tuple[str, str]:
         if ch == '"':
             in_quotes = not in_quotes
         elif ch == "," and not in_quotes:
-            return payload[:i], payload[i + 1:]
+            return payload[:i], payload[i + 1 :]
     return payload, ""
 
 

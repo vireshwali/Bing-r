@@ -75,17 +75,11 @@ class TestCheckIfChannelsExistInApp:
     async def testWithChannelsLoadsAllSections(self, mocker):
         channelsService = makeChannelsServiceMock(mocker)
         channelsService.getChannelsCount = mocker.AsyncMock(return_value=5)
-        channelsService.getRecentlyAddedChannels = mocker.AsyncMock(
-            return_value=[{"id": 1}, {"id": 2}]
-        )
+        channelsService.getRecentlyAddedChannels = mocker.AsyncMock(return_value=[{"id": 1}, {"id": 2}])
         channelsService.getTopCategoryNames = mocker.AsyncMock(return_value=["News"])
-        channelsService.getChannelsByCategory = mocker.AsyncMock(
-            return_value=[{"id": 3}]
-        )
+        channelsService.getChannelsByCategory = mocker.AsyncMock(return_value=[{"id": 3}])
         watchService = makeWatchSessionServiceMock(mocker)
-        watchService.getContinueWatchingChannels = mocker.AsyncMock(
-            return_value=[{"id": 4}]
-        )
+        watchService.getContinueWatchingChannels = mocker.AsyncMock(return_value=[{"id": 4}])
         mocker.patch.object(hcModule, "ChannelsManagementService", mocker.MagicMock(return_value=channelsService))
         mocker.patch.object(hcModule, "WatchSessionService", mocker.MagicMock(return_value=watchService))
         mocker.patch.object(hcModule, "_HomeChannelsListModel", FakeHomeListModel)
@@ -164,9 +158,7 @@ class TestSectionFailures:
         channelsService = makeChannelsServiceMock(mocker)
         channelsService.getChannelsCount = mocker.AsyncMock(return_value=3)
         watchService = makeWatchSessionServiceMock(mocker)
-        watchService.getContinueWatchingChannels = mocker.AsyncMock(
-            side_effect=RuntimeError("cw boom")
-        )
+        watchService.getContinueWatchingChannels = mocker.AsyncMock(side_effect=RuntimeError("cw boom"))
         mocker.patch.object(hcModule, "ChannelsManagementService", mocker.MagicMock(return_value=channelsService))
         mocker.patch.object(hcModule, "WatchSessionService", mocker.MagicMock(return_value=watchService))
         mocker.patch.object(hcModule, "_HomeChannelsListModel", FakeHomeListModel)
@@ -183,13 +175,9 @@ class TestSectionFailures:
     async def testRecentlyAddedFailureDoesNotBreakOtherSections(self, mocker):
         channelsService = makeChannelsServiceMock(mocker)
         channelsService.getChannelsCount = mocker.AsyncMock(return_value=3)
-        channelsService.getRecentlyAddedChannels = mocker.AsyncMock(
-            side_effect=RuntimeError("db boom")
-        )
+        channelsService.getRecentlyAddedChannels = mocker.AsyncMock(side_effect=RuntimeError("db boom"))
         watchService = makeWatchSessionServiceMock(mocker)
-        watchService.getContinueWatchingChannels = mocker.AsyncMock(
-            return_value=[{"id": 9}]
-        )
+        watchService.getContinueWatchingChannels = mocker.AsyncMock(return_value=[{"id": 9}])
         mocker.patch.object(hcModule, "ChannelsManagementService", mocker.MagicMock(return_value=channelsService))
         mocker.patch.object(hcModule, "WatchSessionService", mocker.MagicMock(return_value=watchService))
         mocker.patch.object(hcModule, "_HomeChannelsListModel", FakeHomeListModel)
@@ -207,9 +195,7 @@ class TestSectionFailures:
     async def testCategoriesFailureStillCompletesLoad(self, mocker):
         channelsService = makeChannelsServiceMock(mocker)
         channelsService.getChannelsCount = mocker.AsyncMock(return_value=3)
-        channelsService.getTopCategoryNames = mocker.AsyncMock(
-            side_effect=RuntimeError("cat boom")
-        )
+        channelsService.getTopCategoryNames = mocker.AsyncMock(side_effect=RuntimeError("cat boom"))
         watchService = makeWatchSessionServiceMock(mocker)
         mocker.patch.object(hcModule, "ChannelsManagementService", mocker.MagicMock(return_value=channelsService))
         mocker.patch.object(hcModule, "WatchSessionService", mocker.MagicMock(return_value=watchService))
@@ -299,19 +285,11 @@ class TestPropertiesExposeViewModels:
         """Exercises all QML-facing Property getters."""
         channelsService = makeChannelsServiceMock(mocker)
         channelsService.getChannelsCount = mocker.AsyncMock(return_value=5)
-        channelsService.getRecentlyAddedChannels = mocker.AsyncMock(
-            return_value=[{"id": 1}]
-        )
-        channelsService.getTopCategoryNames = mocker.AsyncMock(
-            return_value=["A", "B"]
-        )
-        channelsService.getChannelsByCategory = mocker.AsyncMock(
-            side_effect=[[{"id": 10}], [{"id": 20}]]
-        )
+        channelsService.getRecentlyAddedChannels = mocker.AsyncMock(return_value=[{"id": 1}])
+        channelsService.getTopCategoryNames = mocker.AsyncMock(return_value=["A", "B"])
+        channelsService.getChannelsByCategory = mocker.AsyncMock(side_effect=[[{"id": 10}], [{"id": 20}]])
         watchService = makeWatchSessionServiceMock(mocker)
-        watchService.getContinueWatchingChannels = mocker.AsyncMock(
-            return_value=[{"id": 2}]
-        )
+        watchService.getContinueWatchingChannels = mocker.AsyncMock(return_value=[{"id": 2}])
         mocker.patch.object(hcModule, "ChannelsManagementService", mocker.MagicMock(return_value=channelsService))
         mocker.patch.object(hcModule, "WatchSessionService", mocker.MagicMock(return_value=watchService))
         mocker.patch.object(hcModule, "_HomeChannelsListModel", FakeHomeListModel)

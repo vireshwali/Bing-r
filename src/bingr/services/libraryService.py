@@ -34,11 +34,7 @@ class LibraryService:
     async def listChannels(self, source_id: int | None = None) -> list[Channel]:
         async with self._sm() as session:
             if source_id is not None:
-                stmt = (
-                    select(Channel)
-                    .join(Channel.m3u_links)
-                    .where(Channel.m3u_links.any(source_id=source_id))
-                )
+                stmt = select(Channel).join(Channel.m3u_links).where(Channel.m3u_links.any(source_id=source_id))
             else:
                 stmt = select(Channel).order_by(Channel.display_name)
             result = await session.execute(stmt)

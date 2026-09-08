@@ -265,12 +265,9 @@ class ChannelsManagementService:
     async def _countChannelsPerCategory(self) -> dict[str, int]:
         """Count how many channels belong to each category, keyed by name."""
         async with self._sm() as session:
-            stmt = (
-                select(Channel.categories)
-                .where(
-                    Channel.categories.isnot(None),
-                    ChannelsManagementService._hasReachableUrlsCondition(),
-                )
+            stmt = select(Channel.categories).where(
+                Channel.categories.isnot(None),
+                ChannelsManagementService._hasReachableUrlsCondition(),
             )
             rows = (await session.execute(stmt)).scalars().all()
 
@@ -380,9 +377,7 @@ class ChannelsManagementService:
         return item if isinstance(item, str) else ""
 
     @staticmethod
-    def _iterFeedStreams(
-        feeds: list[Feed], seenUrls: set[str]
-    ) -> Iterator[tuple[str, str]]:
+    def _iterFeedStreams(feeds: list[Feed], seenUrls: set[str]) -> Iterator[tuple[str, str]]:
         """Yield (url, language code) for feed streams, skipping already-seen URLs.
 
         Streams marked ``reachable=False`` are skipped so dead URLs are excluded.
@@ -484,31 +479,21 @@ class ChannelsManagementService:
             True if the channel was found and updated, False otherwise.
         """
         async with self._sm() as session:
-            stmt = (
-                select(Channel)
-                .options(selectinload(Channel.feeds))
-                .where(Channel.id == channelId)
-            )
+            stmt = select(Channel).options(selectinload(Channel.feeds)).where(Channel.id == channelId)
             channel = (await session.execute(stmt)).scalar_one_or_none()
             if not channel:
-                logger.warning(
-                    "updateChannelReachability: missing channel %s", channelId
-                )
+                logger.warning("updateChannelReachability: missing channel %s", channelId)
                 return False
 
             if channel.m3u_provided_uris:
                 channel.m3u_provided_uris = [
-                    self._updateReachabilityItem(item, urlToReachable)
-                    for item in channel.m3u_provided_uris
+                    self._updateReachabilityItem(item, urlToReachable) for item in channel.m3u_provided_uris
                 ]
 
             for feed in channel.feeds or []:
                 if not feed.streams:
                     continue
-                feed.streams = [
-                    self._updateReachabilityItem(stream, urlToReachable)
-                    for stream in feed.streams
-                ]
+                feed.streams = [self._updateReachabilityItem(stream, urlToReachable) for stream in feed.streams]
 
             await session.commit()
             return True
@@ -537,12 +522,9 @@ class ChannelsManagementService:
     async def getDistinctCategories(self) -> list[str]:
         """Fetch unique category names across displayable channels, sorted A-Z."""
         async with self._sm() as session:
-            stmt = (
-                select(Channel.categories)
-                .where(
-                    Channel.categories.isnot(None),
-                    ChannelsManagementService._hasReachableUrlsCondition(),
-                )
+            stmt = select(Channel.categories).where(
+                Channel.categories.isnot(None),
+                ChannelsManagementService._hasReachableUrlsCondition(),
             )
             rows = (await session.execute(stmt)).scalars().all()
         seen: set[str] = set()
@@ -561,8 +543,7 @@ class ChannelsManagementService:
             stmt = (
                 select(Channel.id)
                 .where(
-                    Channel.categories.is_(None)
-                    | (func.json_array_length(Channel.categories) == 0),
+                    Channel.categories.is_(None) | (func.json_array_length(Channel.categories) == 0),
                     ChannelsManagementService._hasReachableUrlsCondition(),
                 )
                 .limit(1)
@@ -671,9 +652,7 @@ class ChannelsManagementService:
         """
         m3uJsonEach = func.json_each(Channel.m3u_provided_uris).table_valued("value")
         m3uReachable = exists(
-            select(1)
-            .select_from(m3uJsonEach)
-            .where(func.json_extract(m3uJsonEach.c.value, "$.reachable") == 1)
+            select(1).select_from(m3uJsonEach).where(func.json_extract(m3uJsonEach.c.value, "$.reachable") == 1)
         )
 
         feedJsonEach = func.json_each(Feed.streams).table_valued("value")

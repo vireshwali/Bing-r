@@ -29,6 +29,7 @@ def isNuitka() -> bool:
     """Detect Nuitka compiled binary."""
     return "__compiled__" in globals()
 
+
 # glibc is the only common C library that exports ``malloc_trim``. Try every
 # common library name before giving up: some distros only ship ``libc.so.6``,
 # others ``libc.so``. A candidate that loads but lacks the symbol is skipped.
@@ -66,9 +67,7 @@ def trimHeap() -> None:
     unconditionally.
     """
     if _libc is None:
-        logger.warning(
-            "trimHeap: no libc with malloc_trim found — skipping heap trim"
-        )
+        logger.warning("trimHeap: no libc with malloc_trim found — skipping heap trim")
         return
     try:
         _libc.malloc_trim(0)

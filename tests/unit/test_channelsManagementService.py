@@ -58,8 +58,16 @@ class TestGetTopCategoryNames:
 
     def _counts(self):
         return {
-            "News": 10, "Movies": 9, "Sports": 8, "Kids": 7, "Music": 6,
-            "Drama": 5, "Comedy": 4, "Action": 3, "SciFi": 2, "Doc": 1,
+            "News": 10,
+            "Movies": 9,
+            "Sports": 8,
+            "Kids": 7,
+            "Music": 6,
+            "Drama": 5,
+            "Comedy": 4,
+            "Action": 3,
+            "SciFi": 2,
+            "Doc": 1,
         }
 
     async def testFewerThanLimitReturnsAll(self, svc, mocker):
@@ -260,41 +268,54 @@ class TestAggregateLanguages:
 
 
 class TestParseResolution:
-    @pytest.mark.parametrize("raw,expected", [
-        ("1080p", (1080, 1, "1080p")),
-        ("1080i", (1080, 0, "1080i")),
-        ("720", (720, 1, "720p")),
-        (" 480i ", (480, 0, "480i")),
-        ("abc", None),
-        ("", None),
-        ("1080x", None),
-    ])
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("1080p", (1080, 1, "1080p")),
+            ("1080i", (1080, 0, "1080i")),
+            ("720", (720, 1, "720p")),
+            (" 480i ", (480, 0, "480i")),
+            ("abc", None),
+            ("", None),
+            ("1080x", None),
+        ],
+    )
     def testParseResolution(self, svc, raw, expected):
         assert svc._parseResolution(raw) == expected
 
 
 class TestNumericToQuality:
-    @pytest.mark.parametrize("num,expected", [
-        (240, "SD"), (360, "SD"), (480, "SD"), (540, "SD"), (576, "SD"),
-        (720, "HD"),
-        (1080, "FHD"),
-        (1440, "QHD"),
-        (2160, "4K"),
-        (4320, "8K"),
-        (999, ""),
-    ])
+    @pytest.mark.parametrize(
+        "num,expected",
+        [
+            (240, "SD"),
+            (360, "SD"),
+            (480, "SD"),
+            (540, "SD"),
+            (576, "SD"),
+            (720, "HD"),
+            (1080, "FHD"),
+            (1440, "QHD"),
+            (2160, "4K"),
+            (4320, "8K"),
+            (999, ""),
+        ],
+    )
     def testNumericToQuality(self, svc, num, expected):
         assert svc._numericToQuality(num) == expected
 
 
 class TestExtractUriFromM3uItem:
-    @pytest.mark.parametrize("item,expected", [
-        ({"url": "https://example.com/a.m3u8"}, "https://example.com/a.m3u8"),
-        ({}, ""),
-        ({"url": ""}, ""),
-        ("plain-string", "plain-string"),
-        (42, ""),
-    ])
+    @pytest.mark.parametrize(
+        "item,expected",
+        [
+            ({"url": "https://example.com/a.m3u8"}, "https://example.com/a.m3u8"),
+            ({}, ""),
+            ({"url": ""}, ""),
+            ("plain-string", "plain-string"),
+            (42, ""),
+        ],
+    )
     def testExtractUriFromM3uItem(self, svc, item, expected):
         assert Cms._extractUriFromM3uItem(item) == expected
 
@@ -328,19 +349,22 @@ class TestIterFeedStreams:
 
 
 class TestExtractLangCode:
-    @pytest.mark.parametrize("languages,expected", [
-        (None, ""),
-        ([], ""),
-        ([{}], ""),
-        ([{"code": "eng"}], "EN"),
-        ([{"code": "en"}], "EN"),
-        (["fre"], "FR"),
-        ([" spa "], "ES"),
-        (["xyz"], ""),
-        ("not-a-list", ""),
-        ([None], ""),
-        ([{"name": "English"}], ""),
-    ])
+    @pytest.mark.parametrize(
+        "languages,expected",
+        [
+            (None, ""),
+            ([], ""),
+            ([{}], ""),
+            ([{"code": "eng"}], "EN"),
+            ([{"code": "en"}], "EN"),
+            (["fre"], "FR"),
+            ([" spa "], "ES"),
+            (["xyz"], ""),
+            ("not-a-list", ""),
+            ([None], ""),
+            ([{"name": "English"}], ""),
+        ],
+    )
     def testExtractLangCode(self, svc, languages, expected):
         feed = SimpleNamespace(languages=languages) if languages is not None else SimpleNamespace(languages=None)
         assert Cms._extractLangCode(feed) == expected
@@ -387,13 +411,15 @@ class TestUpdateReachabilityItem:
 
 class TestIterReachableM3uUrls:
     def testFiltersAndExtracts(self, svc):
-        ch = SimpleNamespace(m3u_provided_uris=[
-            {"url": "https://a.com/1.m3u8", "reachable": True},
-            {"url": "https://a.com/2.m3u8", "reachable": False},
-            "legacy-str",
-            {"url": "", "reachable": True},
-            {"url": "https://a.com/3.m3u8"},
-        ])
+        ch = SimpleNamespace(
+            m3u_provided_uris=[
+                {"url": "https://a.com/1.m3u8", "reachable": True},
+                {"url": "https://a.com/2.m3u8", "reachable": False},
+                "legacy-str",
+                {"url": "", "reachable": True},
+                {"url": "https://a.com/3.m3u8"},
+            ]
+        )
         urls = list(Cms._iterReachableM3uUrls(ch))
         assert urls == ["https://a.com/1.m3u8", "legacy-str", "https://a.com/3.m3u8"]
 
@@ -404,11 +430,14 @@ class TestIterReachableM3uUrls:
 class TestIterReachableFeedUrls:
     def testFiltersFeedStreams(self, svc):
         feeds = [
-            SimpleNamespace(streams=[
-                {"url": "https://a.com/1.m3u8", "reachable": True},
-                {"url": "https://a.com/2.m3u8", "reachable": False},
-                "bad-entry",
-            ], languages=None),
+            SimpleNamespace(
+                streams=[
+                    {"url": "https://a.com/1.m3u8", "reachable": True},
+                    {"url": "https://a.com/2.m3u8", "reachable": False},
+                    "bad-entry",
+                ],
+                languages=None,
+            ),
             SimpleNamespace(streams=None, languages=None),
         ]
         urls = list(Cms._iterReachableFeedUrls(feeds))
@@ -518,9 +547,7 @@ class TestMappers:
         assert m.displayName == "last.resort"
 
     def testEmptyCollections(self, svc):
-        ch = self._mockChannel(
-            categories=None, alt_names=None, flags=None, tvg_logos=None, country=None, website=None
-        )
+        ch = self._mockChannel(categories=None, alt_names=None, flags=None, tvg_logos=None, country=None, website=None)
         m = svc.mapChannel(ch)
         assert m.category == "Uncategorized"
         assert m.altNames == ""

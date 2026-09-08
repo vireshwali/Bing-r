@@ -122,7 +122,9 @@ class TestImportFromFile(ImportM3uTestBase):
 
     async def testFileAlreadyInPlaylistsDirNotCopied(self, mocker, cfg, sessionMaker, importerMocks):
         mocker.patch.object(importer_module.m3u8, "load", return_value=self._fakePlaylist(1))
-        mocker.patch.object(importer_module, "enrichSegment", return_value=self._enriched("one.us", "One", "https://a.com/1.m3u8"))
+        mocker.patch.object(
+            importer_module, "enrichSegment", return_value=self._enriched("one.us", "One", "https://a.com/1.m3u8")
+        )
         mocker.patch.object(importer_module, "resolveChannelId", return_value="one.us")
         playlists = cfg.workspacePath() / "playlists"
         playlists.mkdir(parents=True)
@@ -199,7 +201,9 @@ class TestImportErrors(ImportM3uTestBase):
         _sm, session = sessionMaker
         session.commit.side_effect = RuntimeError("db exploded")
         mocker.patch.object(importer_module.m3u8, "load", return_value=self._fakePlaylist(1))
-        mocker.patch.object(importer_module, "enrichSegment", return_value=self._enriched("one.us", "One", "https://a.com/1.m3u8"))
+        mocker.patch.object(
+            importer_module, "enrichSegment", return_value=self._enriched("one.us", "One", "https://a.com/1.m3u8")
+        )
         mocker.patch.object(importer_module, "resolveChannelId", return_value="one.us")
         src_file = self._m3uFile(tmp_path)
 

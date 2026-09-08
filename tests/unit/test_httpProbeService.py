@@ -50,9 +50,7 @@ class HttpProbeTestBase:
 
 class TestConstruction(HttpProbeTestBase):
     def testManagerConfiguredFromDefaults(self, service, mockMgr):
-        mockMgr.setRedirectPolicy.assert_called_once_with(
-            QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy
-        )
+        mockMgr.setRedirectPolicy.assert_called_once_with(QNetworkRequest.RedirectPolicy.NoLessSafeRedirectPolicy)
         mockMgr.setTransferTimeout.assert_called_once_with(2000)
         mockMgr.finished.connect.assert_called_once_with(service._onReply)
         mockMgr.sslErrors.connect.assert_called_once_with(service._onSslErrors)

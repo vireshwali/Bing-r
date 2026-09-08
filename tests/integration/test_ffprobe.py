@@ -145,9 +145,7 @@ class TestFfprobeAgainstRealEndpoints:
     async def testOnResultCallbackReportsEachUrl(self, service):
         calls = []
         url = GOOD_URLS["mux-x36xhzz"]
-        task = asyncio.create_task(
-            service.validate(url, onResult=lambda u, ok, reason: calls.append((u, ok, reason)))
-        )
+        task = asyncio.create_task(service.validate(url, onResult=lambda u, ok, reason: calls.append((u, ok, reason))))
         await pumpUntil(task.done)
         await task
         assert calls == [(url, True, "ok")]

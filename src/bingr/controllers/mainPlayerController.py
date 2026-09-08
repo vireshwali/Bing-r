@@ -106,7 +106,9 @@ class MpvFramebufferObject(QQuickFramebufferObject):
 
     @Slot(int)
     def setSubtitleTrack(self, trackId: int):
-        logger.info("MpvFramebufferObject.setSubtitleTrack: trackId=%d, renderer=%s", trackId, self._renderer is not None)
+        logger.info(
+            "MpvFramebufferObject.setSubtitleTrack: trackId=%d, renderer=%s", trackId, self._renderer is not None
+        )
         if self._renderer:
             self._renderer.setSubtitleTrack(trackId)
 
@@ -332,7 +334,8 @@ class MainPlayerController(QObject):
         trackId = 0 if index == 0 else self._subtitleTracks[index - 1].trackId
         logger.info(
             "switchSubtitle: index=%d, trackId=%d, model tracks=%s",
-            index, trackId,
+            index,
+            trackId,
             [(t.trackId, t.name, t.langCode) for t in self._subtitleTracks],
         )
         self.subtitleTrackChanged.emit(trackId)

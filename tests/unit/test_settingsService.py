@@ -96,11 +96,7 @@ class TestSettingsService:
         from sqlalchemy import func, select
 
         async with self._service._sm() as session:
-            count = (
-                await session.execute(
-                    select(func.count()).select_from(Settings)
-                )
-            ).scalar_one()
+            count = (await session.execute(select(func.count()).select_from(Settings))).scalar_one()
         assert count == expectedFields
 
     # ── contains ───────────────────────────────────────────────────────

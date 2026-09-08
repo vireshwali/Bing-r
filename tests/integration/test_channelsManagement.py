@@ -33,9 +33,14 @@ async def seededSource(dbSessionmaker, sample_m3u, tmp_path):
         from sqlalchemy import delete, select
 
         from bingr.db.models import Channel, Feed, M3UChannel, M3USource
+
         src = (await session.execute(select(M3USource).where(M3USource.name == sourceName))).scalar_one_or_none()
         if src:
-            chIds = (await session.execute(select(Channel.id).where(Channel.m3u_links.any(M3UChannel.source_id == src.id)))).scalars().all()
+            chIds = (
+                (await session.execute(select(Channel.id).where(Channel.m3u_links.any(M3UChannel.source_id == src.id))))
+                .scalars()
+                .all()
+            )
             if chIds:
                 await session.execute(delete(Feed).where(Feed.channel_id.in_(chIds)))
                 await session.execute(delete(M3UChannel).where(M3UChannel.channel_id.in_(chIds)))
@@ -69,6 +74,7 @@ async def _mutateFeeds(channelPk, **attrs):
     sm = DatabaseManager.get_sessionmaker()
     async with sm() as session:
         from sqlalchemy import select
+
         feeds = (await session.execute(select(Feed).where(Feed.channel_id == channelPk))).scalars().all()
         for f in feeds:
             for k, v in attrs.items():
@@ -165,6 +171,7 @@ class TestChannelsManagementIntegration:
         storedUrl = row.m3u_provided_uris[0]["url"]
         # Service normalizes both sides; pass normalized key
         from bingr.common.commonUtils import normalizeUrl
+
         normalizedKey = normalizeUrl(storedUrl)
         # Also verify a case-variant normalizes to same
         variant = storedUrl.replace("http://", "HTTP://").replace("example.com", "EXAMPLE.COM")

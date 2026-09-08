@@ -67,12 +67,8 @@ def installStreamProxies() -> None:
     """
     global _stdoutProxy, _stderrProxy
     if _stdoutProxy is None:
-        _stdoutProxy = _LogStreamProxy(
-            sys.stdout, logging.getLogger("bingr.stdout"), logging.INFO
-        )
+        _stdoutProxy = _LogStreamProxy(sys.stdout, logging.getLogger("bingr.stdout"), logging.INFO)
         sys.stdout = _stdoutProxy  # type: ignore[assignment]
     if _stderrProxy is None:
-        _stderrProxy = _LogStreamProxy(
-            sys.stderr, logging.getLogger("bingr.stderr"), logging.WARNING
-        )
+        _stderrProxy = _LogStreamProxy(sys.stderr, logging.getLogger("bingr.stderr"), logging.WARNING)
         sys.stderr = _stderrProxy  # type: ignore[assignment]

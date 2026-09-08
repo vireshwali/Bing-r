@@ -72,6 +72,7 @@ def _qtMessageHandler(msgType, context, message):
     level = _QT_MSG_LEVEL_MAP.get(msgType, logging.INFO)
     _qmlLogger.log(level, "%s", message)
 
+
 _systemHealth: SystemHealthMonitorService | None = None
 
 _activeJobs: list[Any] = []
