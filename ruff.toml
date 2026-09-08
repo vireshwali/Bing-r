@@ -79,3 +79,10 @@ ignore = [
     "B008",    # Function call in default argument
 ]
 
+# ============================================================================
+# ISORT SECTION (import sorting)
+# ============================================================================
+
+[lint.isort]
+known-first-party = ["bingr", "tests"]
+
