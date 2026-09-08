@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import Property, QObject, Signal
 from PySide6.QtQml import QmlElement, QmlSingleton
+
+from bingr import __codename__, __version__
 
 # To be used on the @QmlElement decorator
 # (QML_IMPORT_MINOR_VERSION is optional)
@@ -27,3 +29,7 @@ class SplashScreenController(QObject):
     def publishProgressMsg(self, msg: str):
         if msg:
             self.progressMsg.emit(msg)
+
+    @Property(str)
+    def appVersionSlug(self) -> str:
+        return f"v{__version__} {__codename__}"

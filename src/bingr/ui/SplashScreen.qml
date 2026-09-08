@@ -154,7 +154,7 @@ Window {
         Text {
             id: appVersion
             color: "#a0a0a0"
-            text: qsTr("v1.4.3 Hangul")
+            text: SplashScreenController.appVersionSlug
             anchors.right: title.right
             anchors.bottom: parent.bottom
             anchors.rightMargin: 8

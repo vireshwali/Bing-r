@@ -52,7 +52,6 @@ wheels = [
 
 [[package]]
 name = "bing-r"
-version = "1.4.2"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite" },
