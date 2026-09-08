@@ -55,7 +55,7 @@ todo*
 
 # Runtime data
 workspace/
-db/
+/db/
 logs/
 
 # Test runtime data (auto-created, gitignored)

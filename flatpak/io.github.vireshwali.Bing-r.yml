@@ -41,7 +41,6 @@ modules:
   config-opts:
   - -Dvulkan=enabled
   - -Dshaderc=enabled
-  - -Dlibdir=/app/lib
   cleanup:
   - /include
   - /lib/pkgconfig
@@ -100,8 +99,6 @@ modules:
     sha256: b7c3fd7214a3b7c49d2661db127a712dc11cffd1799f793947aa1cb20aaf3298
 - name: libdisplay-info
   buildsystem: meson
-  config-opts:
-  - -Dlibdir=/app/lib
   sources:
   - type: archive
     url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/archive/0.2.0/libdisplay-info-0.2.0.tar.gz
@@ -185,7 +182,6 @@ modules:
   buildsystem: meson
   config-opts:
   - -Dlibmpv=true
-  - -Dlibdir=/app/lib
   - -Dcplayer=false
   - -Dwerror=false
   - -Dbuild-date=false
