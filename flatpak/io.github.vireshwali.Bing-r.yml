@@ -229,7 +229,7 @@ modules:
     tag: v0.41.0
     commit: 41f6a645068483470267271e1d09966ca3b9f413
 - "pypi-dependencies.yaml"
-- name: bingr
+- name: bing-r
   buildsystem: simple
   build-commands:
   - pip3 install --no-build-isolation --prefix=/app --no-deps .
@@ -241,9 +241,12 @@ modules:
   - cp -r src/bingr/ui_models /app/share/bingr/ui_models
   - cp qtquickcontrols2.conf /app/share/bingr/qtquickcontrols2.conf
   - ln -sf /app/lib/python*/site-packages/PySide6/Qt/qml/QtQuick/Studio /app/lib/qml/QtQuick/Studio
+  - python3 scripts/convert_qrc_refs.py /app/share/bingr/ui
   - install -Dm644 flatpak/io.github.vireshwali.Bing-r.desktop /app/share/applications/io.github.vireshwali.Bing-r.desktop
   - install -Dm644 flatpak/io.github.vireshwali.Bing-r.metainfo.xml /app/share/metainfo/io.github.vireshwali.Bing-r.metainfo.xml
   - install -Dm644 flatpak/io.github.vireshwali.Bing-r.png /app/share/icons/hicolor/512x512/apps/io.github.vireshwali.Bing-r.png
   sources:
-  - type: dir
-    path: ..
+  - type: git
+    url: https://github.com/vireshwali/Bing-r.git
+    tag: v-1.4-Hangul
+    commit: f179623da06b4ddde050df7b3a9c64872edb8e59

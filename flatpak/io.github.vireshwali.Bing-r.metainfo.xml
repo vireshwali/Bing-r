@@ -33,7 +33,7 @@
     <display_length compare="ge">768</display_length>
   </supports>
   <releases>
-    <release version="1.4.2" date="2026-08-08">
+    <release version="1.4.2" date="2026-09-08">
       <description>
         <p>Flatpak packaging and home screen improvements.</p>
       </description>
