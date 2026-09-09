@@ -50,11 +50,13 @@ class DatabaseManager:
         cls.shutdownSync()
         runMigrations(dbPath, alembicIniPath)
         cls._engine = create_async_engine(
-            f"sqlite+aiosqlite:///{dbPath}", echo=False,
+            f"sqlite+aiosqlite:///{dbPath}",
+            echo=False,
             poolclass=NullPool,
         )
         cls._sessionmaker = async_sessionmaker(
-            cls._engine, expire_on_commit=False,
+            cls._engine,
+            expire_on_commit=False,
         )
         logger.info("DatabaseManager initialised: %s", dbPath)
 
