@@ -25,11 +25,12 @@ class SplashScreenController(QObject):
 
     # Argument is the name of the arg that we will use in QML connection
     progressMsg = Signal(str, arguments=["msg"])
+    _versionChanged = Signal()  # Dummy signal for property binding only. never emitted; satisfies QML bindability
 
     def publishProgressMsg(self, msg: str):
         if msg:
             self.progressMsg.emit(msg)
 
-    @Property(str)
+    @Property(str, notify=_versionChanged)
     def appVersionSlug(self) -> str:
         return f"v{__version__} {__codename__}"
