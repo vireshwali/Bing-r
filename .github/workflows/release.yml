@@ -1,0 +1,186 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.6.0)'
+        required: true
+        type: string
+      codename:
+        description: 'Codename (e.g., Hangul)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate inputs
+        run: |
+          VERSION="${{ inputs.version }}"
+          CODENAME="${{ inputs.codename }}"
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version format. Expected X.Y.Z (e.g., 1.6.0)"
+            exit 1
+          fi
+
+          if [[ ! "$CODENAME" =~ ^[a-zA-Z0-9-]+$ ]]; then
+            echo "::error::Invalid codename. Only alphanumeric characters and hyphens allowed."
+            exit 1
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "CODENAME=$CODENAME" >> "$GITHUB_ENV"
+
+      - name: Verify CI is passing on main
+        run: |
+          RUN_INFO=$(gh run list --branch main --workflow ci.yml --limit 1 \
+            --json status,conclusion,headSha --jq '.[0]')
+
+          if [ -z "$RUN_INFO" ] || [ "$RUN_INFO" = "null" ]; then
+            echo "::error::No CI runs found on main. Run CI at least once before releasing."
+            exit 1
+          fi
+
+          STATUS=$(echo "$RUN_INFO" | jq -r '.status')
+          CONCLUSION=$(echo "$RUN_INFO" | jq -r '.conclusion')
+          SHA=$(echo "$RUN_INFO" | jq -r '.headSha')
+
+          echo "Latest CI run on main: $SHA"
+          echo "Status: $STATUS | Conclusion: $CONCLUSION"
+
+          if [ "$STATUS" != "completed" ]; then
+            echo "::error::CI is still running on main. Wait for it to complete before releasing."
+            exit 1
+          fi
+
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "::error::CI is not passing on main (conclusion: $CONCLUSION). Fix CI before releasing."
+            exit 1
+          fi
+
+          echo "CI is passing on main"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for existing tag
+        run: |
+          TAG="v${VERSION}-${CODENAME}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag $TAG already exists. Use a different version or codename."
+            exit 1
+          fi
+          echo "Tag $TAG is available"
+
+      - name: Create release branch
+        run: |
+          BRANCH="release/${VERSION}-${CODENAME}"
+          git checkout -b "$BRANCH"
+          echo "Created branch: $BRANCH"
+
+      - name: Update version in __init__.py
+        run: |
+          FILE="src/bingr/__init__.py"
+          sed -i "s/__version__ = \".*\"/__version__ = \"${VERSION}\"/" "$FILE"
+          sed -i "s/__codename__ = \".*\"/__codename__ = \"${CODENAME}\"/" "$FILE"
+          echo "Updated $FILE:"
+          grep "__version__\|__codename__" "$FILE"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Generate flatpak requirements.txt
+        run: ./scripts/generate-flatpak-deps.sh
+
+      - name: Generate pypi-dependencies.yaml
+        run: |
+          .venv/bin/python3 .venv/lib/python3.12/site-packages/flatpak_pip_generator/__main__.py \
+            --yaml \
+            --requirements-file flatpak/requirements.txt \
+            --output flatpak/pypi-dependencies \
+            --ignore-pkg 'PySide6,pyside6,pyside6-addons,pyside6-essentials,shiboken6' \
+            --prefer-wheels 'pyside6-ds,lxml,orjson,greenlet,markupsafe,mpv,sqlalchemy,alembic,pyside6,pyside6-addons,pyside6-essentials,shiboken6' \
+            --wheel-arches x86_64 \
+            --runtime 'org.kde.Sdk//6.11'
+
+      - name: Compile QRC resources
+        run: |
+          .venv/bin/pyside6-rcc src/bingr/qml_resources.qrc -o src/bingr/qml_resources.py
+          echo "Compiled QRC resources"
+
+      - name: Sanity check generated files
+        run: |
+          ERRORS=0
+
+          DEPS=$(grep -cE '^[a-zA-Z0-9_.-]+==' flatpak/requirements.txt || true)
+          if [ "$DEPS" -lt 1 ]; then
+            echo "::error::flatpak/requirements.txt has no dependencies"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "requirements.txt: $DEPS dependencies"
+          fi
+
+          if [ ! -s flatpak/pypi-dependencies.yaml ]; then
+            echo "::error::flatpak/pypi-dependencies.yaml is missing or empty"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "pypi-dependencies.yaml: $(wc -l < flatpak/pypi-dependencies.yaml) lines"
+          fi
+
+          if [ ! -s src/bingr/qml_resources.py ]; then
+            echo "::error::src/bingr/qml_resources.py is missing or empty"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "qml_resources.py: $(wc -l < src/bingr/qml_resources.py) lines"
+          fi
+
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "::error::Sanity check failed. $ERRORS file(s) are invalid."
+            exit 1
+          fi
+
+          echo "All generated files look good"
+
+      - name: Run lint check
+        run: |
+          .venv/bin/ruff check .
+          .venv/bin/ruff format --check .
+
+      - name: Commit changes
+        run: |
+          git add src/bingr/__init__.py flatpak/requirements.txt flatpak/pypi-dependencies.yaml src/bingr/qml_resources.py
+          git commit -m "Release v${VERSION}-${CODENAME}"
+
+      - name: Create tag
+        run: |
+          TAG="v${VERSION}-${CODENAME}"
+          git tag -a "$TAG" -m "Release v${VERSION}-${CODENAME}"
+          echo "Created tag: $TAG"
+
+      - name: Push branch and tag
+        run: |
+          git push origin "release/${VERSION}-${CODENAME}"
+          git push origin "v${VERSION}-${CODENAME}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${VERSION}-${CODENAME}"
+          name: "Release v${VERSION}-${CODENAME}"
+          generate_release_notes: true
+          draft: false
+          prerelease: false
