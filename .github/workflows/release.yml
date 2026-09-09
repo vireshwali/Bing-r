@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version number (e.g., 1.6.0)'
+        description: 'Version (x.y.z, e.g. 1.6.0 — no v prefix, numbers only)'
         required: true
         type: string
       codename:
@@ -12,23 +12,36 @@ on:
         required: true
         type: string
 
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
+# This workflow MUST be run from the main branch.
+# It creates a release branch, generates all release artifacts,
+# and creates a tagged GitHub release.
+#
+# secrets.GITHUB_TOKEN is provided automatically by GitHub — no setup needed.
 
-      - name: Validate inputs
+jobs:
+  pre-validations:
+    name: Pre-Validations
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.compute.outputs.branch_name }}
+      tag_name: ${{ steps.compute.outputs.tag_name }}
+      version: ${{ steps.compute.outputs.version }}
+      codename: ${{ steps.compute.outputs.codename }}
+    steps:
+      - name: Ensure running on main branch
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "::error::This workflow can only be run from the main branch."
+            exit 1
+          fi
+
+      - name: Validate input format
         run: |
           VERSION="${{ inputs.version }}"
           CODENAME="${{ inputs.codename }}"
 
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Invalid version format. Expected X.Y.Z (e.g., 1.6.0)"
+            echo "::error::Invalid version format. Expected x.y.z with no v prefix (e.g. 1.6.0)"
             exit 1
           fi
 
@@ -36,9 +49,6 @@ jobs:
             echo "::error::Invalid codename. Only alphanumeric characters and hyphens allowed."
             exit 1
           fi
-
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "CODENAME=$CODENAME" >> "$GITHUB_ENV"
 
       - name: Verify CI is passing on main
         run: |
@@ -73,26 +83,82 @@ jobs:
 
       - name: Check for existing tag
         run: |
+          VERSION="${{ inputs.version }}"
+          CODENAME="${{ inputs.codename }}"
           TAG="v${VERSION}-${CODENAME}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
+
+          EXISTING=$(gh api "repos/${{ github.repository }}/git/ref/tags/${TAG}" 2>&1 || true)
+          if echo "$EXISTING" | grep -q '"ref"'; then
             echo "::error::Tag $TAG already exists. Use a different version or codename."
             exit 1
           fi
           echo "Tag $TAG is available"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create release branch
+      - name: Compute outputs
+        id: compute
         run: |
-          BRANCH="release/${VERSION}-${CODENAME}"
+          VERSION="${{ inputs.version }}"
+          CODENAME="${{ inputs.codename }}"
+          echo "branch_name=release/${VERSION}-${CODENAME}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=v${VERSION}-${CODENAME}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "codename=${CODENAME}" >> "$GITHUB_OUTPUT"
+
+  create-release-branch:
+    name: Create Release Branch
+    needs: [pre-validations]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create and push release branch
+        run: |
+          BRANCH="${{ needs.pre-validations.outputs.branch_name }}"
           git checkout -b "$BRANCH"
-          echo "Created branch: $BRANCH"
+          git push origin "$BRANCH"
+          echo "Created and pushed branch: $BRANCH"
 
-      - name: Update version in __init__.py
+  update-version:
+    name: Update Version
+    needs: [pre-validations, create-release-branch]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+
+      - name: Update __init__.py
         run: |
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
           FILE="src/bingr/__init__.py"
           sed -i "s/__version__ = \".*\"/__version__ = \"${VERSION}\"/" "$FILE"
           sed -i "s/__codename__ = \".*\"/__codename__ = \"${CODENAME}\"/" "$FILE"
           echo "Updated $FILE:"
           grep "__version__\|__codename__" "$FILE"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          git add src/bingr/__init__.py
+          git commit -m "Release v${VERSION}-${CODENAME}: update version"
+          git push
+
+  generate-requirements:
+    name: Generate Requirements
+    needs: [pre-validations, update-version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v10.0.1
@@ -106,6 +172,34 @@ jobs:
       - name: Generate flatpak requirements.txt
         run: ./scripts/generate-flatpak-deps.sh
 
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          git add flatpak/requirements.txt
+          git commit -m "Release v${VERSION}-${CODENAME}: generate requirements.txt"
+          git push
+
+  generate-pypi-deps:
+    name: Generate PyPI Dependencies
+    needs: [pre-validations, generate-requirements]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --dev
+
       - name: Generate pypi-dependencies.yaml
         run: |
           .venv/bin/python3 .venv/lib/python3.12/site-packages/flatpak_pip_generator/__main__.py \
@@ -117,10 +211,66 @@ jobs:
             --wheel-arches x86_64 \
             --runtime 'org.kde.Sdk//6.11'
 
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          git add flatpak/pypi-dependencies.yaml
+          git commit -m "Release v${VERSION}-${CODENAME}: generate pypi-dependencies.yaml"
+          git push
+
+  compile-qrc:
+    name: Compile QRC Resources
+    needs: [pre-validations, generate-pypi-deps]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --dev
+
       - name: Compile QRC resources
         run: |
           .venv/bin/pyside6-rcc src/bingr/qml_resources.qrc -o src/bingr/qml_resources.py
           echo "Compiled QRC resources"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          git add src/bingr/qml_resources.py
+          git commit -m "Release v${VERSION}-${CODENAME}: compile QRC resources"
+          git push
+
+  post-validations:
+    name: Post-Validations
+    needs: [pre-validations, compile-qrc]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --dev
 
       - name: Sanity check generated files
         run: |
@@ -160,27 +310,36 @@ jobs:
           .venv/bin/ruff check .
           .venv/bin/ruff format --check .
 
-      - name: Commit changes
-        run: |
-          git add src/bingr/__init__.py flatpak/requirements.txt flatpak/pypi-dependencies.yaml src/bingr/qml_resources.py
-          git commit -m "Release v${VERSION}-${CODENAME}"
+  tag-and-release:
+    name: Tag and Release
+    needs: [pre-validations, post-validations]
+    if: ${{ false }} # disabled for now — remove this line to enable
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+          fetch-depth: 0
 
       - name: Create tag
         run: |
-          TAG="v${VERSION}-${CODENAME}"
+          TAG="${{ needs.pre-validations.outputs.tag_name }}"
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git tag -a "$TAG" -m "Release v${VERSION}-${CODENAME}"
           echo "Created tag: $TAG"
 
-      - name: Push branch and tag
+      - name: Push tag
         run: |
-          git push origin "release/${VERSION}-${CODENAME}"
-          git push origin "v${VERSION}-${CODENAME}"
+          git push origin "${{ needs.pre-validations.outputs.tag_name }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: "v${VERSION}-${CODENAME}"
-          name: "Release v${VERSION}-${CODENAME}"
+          tag_name: "${{ needs.pre-validations.outputs.tag_name }}"
+          name: "Release ${{ needs.pre-validations.outputs.tag_name }}"
           generate_release_notes: true
           draft: false
           prerelease: false
