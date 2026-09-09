@@ -25,7 +25,9 @@ from __future__ import annotations
 import asyncio
 import locale
 import logging
+import subprocess
 from collections.abc import Callable
+from functools import lru_cache
 
 from PySide6.QtCore import QProcess
 
@@ -45,6 +47,25 @@ def _disconnectSignals(proc: QProcess) -> None:
             sig.disconnect()
         except (TypeError, RuntimeError):
             pass
+
+
+@lru_cache(maxsize=1)
+def _ffprobeMajorVersion(ffprobePath: str) -> int:
+    """Return the major version of the ffprobe binary, or 0 on failure."""
+    try:
+        out = subprocess.check_output(
+            [ffprobePath, "-version"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=5,
+        )
+        # First line: "ffprobe version 7.1.2 Copyright ..."
+        parts = out.split()
+        if len(parts) >= 3:
+            return int(parts[2].split(".")[0])
+    except Exception:
+        logger.debug("Could not detect ffprobe version, assuming < 7")
+    return 0
 
 
 class FfprobeService:
@@ -68,6 +89,7 @@ class FfprobeService:
         self._ffprobePath = ffprobePath
         self._userAgent = userAgent
         self._lock = asyncio.Lock()
+        self._hasExtensionPicky = _ffprobeMajorVersion(ffprobePath) >= 7
 
     async def validate(
         self,
@@ -165,14 +187,16 @@ class FfprobeService:
         proc.finished.connect(_onFinished)
         proc.errorOccurred.connect(_onError)
         proc.setProgram(self._ffprobePath)
-        proc.setArguments(
+        args = [
+            "-user_agent",
+            self._userAgent,
+            "-v",
+            "error",
+        ]
+        if self._hasExtensionPicky:
+            args.extend(["-extension_picky", "false"])
+        args.extend(
             [
-                "-user_agent",
-                self._userAgent,
-                "-v",
-                "error",
-                "-extension_picky",
-                "false",
                 "-show_format",
                 "-show_streams",
                 "-rw_timeout",
@@ -180,6 +204,7 @@ class FfprobeService:
                 url,
             ]
         )
+        proc.setArguments(args)
 
         try:
             proc.start()
