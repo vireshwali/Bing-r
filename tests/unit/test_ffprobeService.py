@@ -108,9 +108,12 @@ class TestValidateSingle(FfprobeTestBase):
         assert (ok, reason) == (True, "ok")
         proc.deleteLater.assert_called_once()
 
-    async def testLaunchesFfprobeWithExpectedArgs(self, service, procFactory):
+    async def testLaunchesFfprobeWithExpectedArgsV6(self, service, procFactory, mocker):
+        mocker.patch.object(ffprobe_module, "_ffprobeMajorVersion", return_value=6)
+        svc = FfprobeService(timeoutSeconds=30.0, concurrency=2)
+
         url = "https://example.com/live.m3u8"
-        task = asyncio.create_task(service.validate(url))
+        task = asyncio.create_task(svc.validate(url))
         assert await self._waitForProcs(procFactory.procs)
         proc = procFactory.procs[0]
 
@@ -118,7 +121,35 @@ class TestValidateSingle(FfprobeTestBase):
         proc.setArguments.assert_called_once_with(
             [
                 "-user_agent",
-                service._userAgent,
+                svc._userAgent,
+                "-v",
+                "error",
+                "-show_format",
+                "-show_streams",
+                "-rw_timeout",
+                str(30_000_000),
+                url,
+            ]
+        )
+        proc.start.assert_called_once()
+
+        self._fireFinished(proc, exitCode=0)
+        await asyncio.wait_for(task, timeout=1.0)
+
+    async def testLaunchesFfprobeWithExtensionPickyForV7(self, service, procFactory, mocker):
+        mocker.patch.object(ffprobe_module, "_ffprobeMajorVersion", return_value=8)
+        svc = FfprobeService(timeoutSeconds=30.0, concurrency=2)
+
+        url = "https://example.com/live.m3u8"
+        task = asyncio.create_task(svc.validate(url))
+        assert await self._waitForProcs(procFactory.procs)
+        proc = procFactory.procs[0]
+
+        proc.setProgram.assert_called_once_with("ffprobe")
+        proc.setArguments.assert_called_once_with(
+            [
+                "-user_agent",
+                svc._userAgent,
                 "-v",
                 "error",
                 "-extension_picky",
