@@ -52,7 +52,7 @@ jobs:
 
       - name: Verify CI is passing on main
         run: |
-          RUN_INFO=$(gh run list --branch main --workflow ci.yml --limit 1 \
+          RUN_INFO=$(gh run list --repo "${{ github.repository }}" --branch main --workflow ci.yml --limit 1 \
             --json status,conclusion,headSha --jq '.[0]')
 
           if [ -z "$RUN_INFO" ] || [ "$RUN_INFO" = "null" ]; then
@@ -87,7 +87,7 @@ jobs:
           CODENAME="${{ inputs.codename }}"
           TAG="v${VERSION}-${CODENAME}"
 
-          EXISTING=$(gh api "repos/${{ github.repository }}/git/ref/tags/${TAG}" 2>&1 || true)
+          EXISTING=$(gh api --repo "${{ github.repository }}" "repos/${{ github.repository }}/git/ref/tags/${TAG}" 2>&1 || true)
           if echo "$EXISTING" | grep -q '"ref"'; then
             echo "::error::Tag $TAG already exists. Use a different version or codename."
             exit 1
