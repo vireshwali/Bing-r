@@ -12,8 +12,6 @@ finish-args:
 - --device=dri
 - --share=network
 - --socket=pulseaudio
-- --filesystem=xdg-config/Bing-r
-- --filesystem=xdg-data/bingr
 - --env=QML_IMPORT_PATH=/app/share/bingr
 - --env=QT_QUICK_CONTROLS_CONF=/app/share/bingr/qtquickcontrols2.conf
 - --env=LD_LIBRARY_PATH=/app/lib
@@ -244,5 +242,5 @@ modules:
   sources:
   - type: git
     url: https://github.com/vireshwali/Bing-r.git
-    tag: v1.4.1-Hangul
-    commit: a0a0c707c29387276df51f6c46db768613f499de
+    tag: v1.5.7-Hangul
+    commit: 9f584e9c81ff8f7aecac8a14f5ae265ac789e8d6
