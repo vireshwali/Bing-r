@@ -1,4 +1,4 @@
 from __future__ import annotations
 
-__version__ = "1.5.7"
-__codename__ = "Hangul"
+__version__ = "1.1.10"
+__codename__ = "Test2"
