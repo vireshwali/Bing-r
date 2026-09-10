@@ -237,8 +237,8 @@ jobs:
 
       - name: Prepare dconf runtime directory
         run: |
-          mkdir -p /run/user/$(id -u)/dconf
-          chmod 700 /run/user/$(id -u)/dconf
+          sudo mkdir -p /run/user/$(id -u)/dconf
+          sudo chmod 77700 /run/user/$(id -u)/dconf
 
       - name: Install uv
         uses: astral-sh/setup-uv@v10.0.1
@@ -251,6 +251,17 @@ jobs:
 
       - name: Generate pypi-dependencies.yaml
         run: |
+          # Fix for dconf issues with flatpak
+          # 1. Create the base system run directory using sudo
+          sudo mkdir -p /run/user/$(id -u)
+
+          # 2. Dynamically change ownership to the active workflow user and group
+          sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
+
+          # 3. Create the dconf folder natively as the active user
+          mkdir -p /run/user/$(id -u)/dconf
+
+          # Run pypi deps generation
           .venv/bin/python3 .venv/lib/python3.12/site-packages/flatpak_pip_generator/__main__.py \
             --yaml \
             --requirements-file flatpak/requirements.txt \
