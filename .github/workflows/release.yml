@@ -450,7 +450,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y flatpak flatpak-builder
           sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.kde.Sdk//6.11 org.kde.Platform//6.11
+          sudo flatpak install -y flathub org.flatpak.Builder org.kde.Sdk//6.11 org.kde.Platform//6.11
 
       - name: Run Flatpak build
         run: |
