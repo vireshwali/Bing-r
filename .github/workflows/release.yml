@@ -27,6 +27,7 @@ jobs:
       tag_name: ${{ steps.compute.outputs.tag_name }}
       version: ${{ steps.compute.outputs.version }}
       codename: ${{ steps.compute.outputs.codename }}
+      codename_lower: ${{ steps.compute.outputs.codename_lower }}
     steps:
       - name: Ensure running on main branch
         run: |
@@ -84,8 +85,8 @@ jobs:
       - name: Check for existing tag
         run: |
           VERSION="${{ inputs.version }}"
-          CODENAME="${{ inputs.codename }}"
-          TAG="v${VERSION}-${CODENAME}"
+          CODENAME_LOWER="$(echo "${{ inputs.codename }}" | tr '[:upper:]' '[:lower:]')"
+          TAG="v${VERSION}-${CODENAME_LOWER}"
 
           EXISTING=$(gh api --repo "${{ github.repository }}" "repos/${{ github.repository }}/git/ref/tags/${TAG}" 2>&1 || true)
           if echo "$EXISTING" | grep -q '"ref"'; then
@@ -101,15 +102,19 @@ jobs:
         run: |
           VERSION="${{ inputs.version }}"
           CODENAME="${{ inputs.codename }}"
-          echo "branch_name=release/${VERSION}-${CODENAME}" >> "$GITHUB_OUTPUT"
-          echo "tag_name=v${VERSION}-${CODENAME}" >> "$GITHUB_OUTPUT"
+          CODENAME_LOWER="$(echo "$CODENAME" | tr '[:upper:]' '[:lower:]')"
+          echo "branch_name=release/v${VERSION}-${CODENAME_LOWER}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=v${VERSION}-${CODENAME_LOWER}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "codename=${CODENAME}" >> "$GITHUB_OUTPUT"
+          echo "codename_lower=${CODENAME_LOWER}" >> "$GITHUB_OUTPUT"
 
   create-release-branch:
     name: Create Release Branch
     needs: [pre-validations]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -126,6 +131,8 @@ jobs:
     name: Update Version
     needs: [pre-validations, create-release-branch]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -146,15 +153,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add src/bingr/__init__.py
-          git commit -m "Release v${VERSION}-${CODENAME}: update version"
+          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: update version"
           git push
 
   generate-requirements:
     name: Generate Requirements
     needs: [pre-validations, update-version]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -177,15 +186,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add flatpak/requirements.txt
-          git commit -m "Release v${VERSION}-${CODENAME}: generate requirements.txt"
+          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate requirements.txt"
           git push
 
   generate-pypi-deps:
     name: Generate PyPI Dependencies
     needs: [pre-validations, generate-requirements]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -216,15 +227,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add flatpak/pypi-dependencies.yaml
-          git commit -m "Release v${VERSION}-${CODENAME}: generate pypi-dependencies.yaml"
+          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate pypi-dependencies.yaml"
           git push
 
   compile-qrc:
     name: Compile QRC Resources
     needs: [pre-validations, generate-pypi-deps]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -249,9 +262,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add src/bingr/qml_resources.py
-          git commit -m "Release v${VERSION}-${CODENAME}: compile QRC resources"
+          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: compile QRC resources"
           git push
 
   post-validations:
@@ -327,8 +340,8 @@ jobs:
         run: |
           TAG="${{ needs.pre-validations.outputs.tag_name }}"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
-          git tag -a "$TAG" -m "Release v${VERSION}-${CODENAME}"
+          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
+          git tag -a "$TAG" -m "Release v${VERSION}-${CODENAME_LOWER}"
           echo "Created tag: $TAG"
 
       - name: Push tag
