@@ -439,31 +439,23 @@ jobs:
     name: Verify Flatpak Build
     needs: [pre-validations, update-flatpak-manifest]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+      options: --privileged
+    env:
+      GIT_CONFIG_COUNT: 1
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.pre-validations.outputs.branch_name }}
 
-      - name: Install Flatpak and Builder
-        run: |
-          sudo apt-get update && sudo apt-get install -y flatpak flatpak-builder
-          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.flatpak.Builder org.kde.Sdk//6.11 org.kde.Platform//6.11
-
-      - name: Run Flatpak build
-        run: |
-          # Fix dconf permission issue in CI
-          sudo mkdir -p /run/user/$(id -u)
-          sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
-          mkdir -p /run/user/$(id -u)/dconf
-
-          mkdir flatpak_bingr_build && cd flatpak_bingr_build
-
-          GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.autocrlf GIT_CONFIG_VALUE_0=false \
-          flatpak run --command=flathub-build org.flatpak.Builder --install \
-          ../flatpak/io.github.vireshwali.Bing-r.yml
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: flatpak/io.github.vireshwali.Bing-r.yml
+          bundle: bingr.flatpak
+          upload-artifact: false
 
       - name: Verify build artifacts
         run: |
@@ -474,34 +466,18 @@ jobs:
           echo "=== Build Verification ==="
           echo "Tag: $TAG"
           echo "Version: $VERSION"
-          echo "Workign Dir: $(pwd)"
           echo ""
 
-          cd ..
-
-          if [ ! -d "flatpak_bingr_build" ]; then
-            echo "::error::Build directory flatpak_bingr_build does not exist"
-            exit 1
-          fi
-          echo "Build directory exists — OK"
-
-          if [ -f "flatpak_bingr_build/bingr" ]; then
-            echo "Binary: flatpak_bingr_build/bingr — OK"
+          if [ -f "bingr.flatpak" ]; then
+            SIZE=$(du -h bingr.flatpak | cut -f1)
+            echo "Bundle: bingr.flatpak ($SIZE) — OK"
           else
-            echo "::error::Binary not found at flatpak_bingr_build/bingr"
+            echo "::error::Bundle bingr.flatpak not found"
             ERRORS=$((ERRORS + 1))
           fi
 
-          DESKTOP=$(find flatpak_bingr_build -name "*.desktop" | head -1)
-          if [ -n "$DESKTOP" ]; then
-            echo "Desktop file: $DESKTOP — OK"
-          else
-            echo "::error::Desktop file not found in build output"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          METAINFO=$(find flatpak_bingr_build -name "*.metainfo.xml" | head -1)
-          if [ -n "$METAINFO" ]; then
+          METAINFO="flatpak/io.github.vireshwali.Bing-r.metainfo.xml"
+          if [ -f "$METAINFO" ]; then
             echo "Metainfo: $METAINFO — OK"
             if grep -q "version=\"${VERSION}\"" "$METAINFO"; then
               echo "Metainfo version $VERSION — OK"
@@ -509,7 +485,7 @@ jobs:
               echo "::warning::Metainfo does not contain version $VERSION"
             fi
           else
-            echo "::error::Metainfo XML not found in build output"
+            echo "::error::Metainfo XML not found"
             ERRORS=$((ERRORS + 1))
           fi
 
