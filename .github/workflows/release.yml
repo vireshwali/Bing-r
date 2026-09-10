@@ -169,8 +169,8 @@ jobs:
 
       - name: Commit and push
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add src/bingr/__init__.py
@@ -206,8 +206,8 @@ jobs:
 
       - name: Commit and push
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add flatpak/requirements.txt
@@ -268,8 +268,8 @@ jobs:
 
       - name: Commit and push
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add flatpak/pypi-dependencies.yaml
@@ -307,8 +307,8 @@ jobs:
 
       - name: Commit and push
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add src/bingr/qml_resources.py
@@ -390,6 +390,8 @@ jobs:
 
       - name: Create tag
         run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           TAG="${{ needs.pre-validations.outputs.tag_name }}"
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME="${{ needs.pre-validations.outputs.codename }}"
