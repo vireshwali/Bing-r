@@ -459,6 +459,7 @@ jobs:
             --disable-rofiles-fuse \
             --repo=repo \
             --arch=x86_64 \
+            --default-branch=main \
             --state-dir .flatpak-builder \
             flatpak_app \
             flatpak/io.github.vireshwali.Bing-r.yml
