@@ -27,7 +27,6 @@ jobs:
       tag_name: ${{ steps.compute.outputs.tag_name }}
       version: ${{ steps.compute.outputs.version }}
       codename: ${{ steps.compute.outputs.codename }}
-      codename_lower: ${{ steps.compute.outputs.codename_lower }}
       release_name: ${{ steps.compute.outputs.release_name }}
     steps:
       - name: Ensure running on main branch
@@ -44,6 +43,11 @@ jobs:
 
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Invalid version format. Expected x.y.z with no v prefix (e.g. 1.6.0)"
+            exit 1
+          fi
+
+          if [[ "$CODENAME" =~ [[:space:]] ]]; then
+            echo "::error::Codename must be a single word with no spaces."
             exit 1
           fi
 
@@ -86,8 +90,8 @@ jobs:
       - name: Check for existing tag
         run: |
           VERSION="${{ inputs.version }}"
-          CODENAME_LOWER="$(echo "${{ inputs.codename }}" | tr '[:upper:]' '[:lower:]')"
-          TAG="v${VERSION}-${CODENAME_LOWER}"
+          CODENAME="$(echo "${{ inputs.codename }}" | tr '[:upper:]' '[:lower:]' | sed 's/./\U&/')"
+          TAG="v${VERSION}-${CODENAME}"
 
           EXISTING=$(gh api --repo "${{ github.repository }}" "repos/${{ github.repository }}/git/ref/tags/${TAG}" 2>&1 || true)
           if echo "$EXISTING" | grep -q '"ref"'; then
@@ -101,8 +105,8 @@ jobs:
       - name: Check for existing release branch
         run: |
           VERSION="${{ inputs.version }}"
-          CODENAME_LOWER="$(echo "${{ inputs.codename }}" | tr '[:upper:]' '[:lower:]')"
-          BRANCH="release/v${VERSION}-${CODENAME_LOWER}"
+          CODENAME="$(echo "${{ inputs.codename }}" | tr '[:upper:]' '[:lower:]' | sed 's/./\U&/')"
+          BRANCH="release/v${VERSION}-${CODENAME}"
 
           EXISTING=$(gh api --repo "${{ github.repository }}" "repos/${{ github.repository }}/branches/${BRANCH}" 2>&1 || true)
           if echo "$EXISTING" | grep -q '"name"'; then
@@ -117,13 +121,11 @@ jobs:
         id: compute
         run: |
           VERSION="${{ inputs.version }}"
-          CODENAME="${{ inputs.codename }}"
-          CODENAME_LOWER="$(echo "$CODENAME" | tr '[:upper:]' '[:lower:]')"
-          echo "branch_name=release/v${VERSION}-${CODENAME_LOWER}" >> "$GITHUB_OUTPUT"
-          echo "tag_name=v${VERSION}-${CODENAME_LOWER}" >> "$GITHUB_OUTPUT"
+          CODENAME="$(echo "${{ inputs.codename }}" | tr '[:upper:]' '[:lower:]' | sed 's/./\U&/')"
+          echo "branch_name=release/v${VERSION}-${CODENAME}" >> "$GITHUB_OUTPUT"
+          echo "tag_name=v${VERSION}-${CODENAME}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "codename=${CODENAME}" >> "$GITHUB_OUTPUT"
-          echo "codename_lower=${CODENAME_LOWER}" >> "$GITHUB_OUTPUT"
           echo "release_name=Release v${VERSION}-${CODENAME}" >> "$GITHUB_OUTPUT"
 
   create-release-branch:
@@ -170,12 +172,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add src/bingr/__init__.py
           if git diff --cached --quiet; then
             echo "__init__.py unchanged — skipping commit"
           else
-            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: update version"
+            git commit -m "Release v${VERSION}-${CODENAME}: update version"
             git push
           fi
 
@@ -207,12 +209,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add flatpak/requirements.txt
           if git diff --cached --quiet; then
             echo "requirements.txt unchanged — skipping commit"
           else
-            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate requirements.txt"
+            git commit -m "Release v${VERSION}-${CODENAME}: generate requirements.txt"
             git push
           fi
 
@@ -258,12 +260,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add flatpak/pypi-dependencies.yaml
           if git diff --cached --quiet; then
             echo "pypi-dependencies.yaml unchanged — skipping commit"
           else
-            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate pypi-dependencies.yaml"
+            git commit -m "Release v${VERSION}-${CODENAME}: generate pypi-dependencies.yaml"
             git push
           fi
 
@@ -297,12 +299,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
           git add src/bingr/qml_resources.py
           if git diff --cached --quiet; then
             echo "qml_resources.py unchanged — skipping commit"
           else
-            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: compile QRC resources"
+            git commit -m "Release v${VERSION}-${CODENAME}: compile QRC resources"
             git push
           fi
 
@@ -379,8 +381,8 @@ jobs:
         run: |
           TAG="${{ needs.pre-validations.outputs.tag_name }}"
           VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
-          git tag -a "$TAG" -m "Release v${VERSION}-${CODENAME_LOWER}"
+          CODENAME="${{ needs.pre-validations.outputs.codename }}"
+          git tag -a "$TAG" -m "Release v${VERSION}-${CODENAME}"
           echo "Created tag: $TAG"
 
       - name: Push tag
