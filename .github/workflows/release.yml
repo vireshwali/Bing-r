@@ -178,6 +178,7 @@ jobs:
             echo "__init__.py unchanged — skipping commit"
           else
             git commit -m "Release v${VERSION}-${CODENAME}: update version"
+            git pull --rebase origin "${{ needs.pre-validations.outputs.branch_name }}"
             git push
           fi
 
@@ -237,6 +238,7 @@ jobs:
             echo "Flatpak deps unchanged — skipping commit"
           else
             git commit -m "Release v${VERSION}-${CODENAME}: generate flatpak dependencies"
+            git pull --rebase origin "${{ needs.pre-validations.outputs.branch_name }}"
             git push
           fi
 
@@ -276,6 +278,7 @@ jobs:
             echo "qml_resources.py unchanged — skipping commit"
           else
             git commit -m "Release v${VERSION}-${CODENAME}: compile QRC resources"
+            git pull --rebase origin "${{ needs.pre-validations.outputs.branch_name }}"
             git push
           fi
 
