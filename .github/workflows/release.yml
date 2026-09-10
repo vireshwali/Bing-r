@@ -439,6 +439,8 @@ jobs:
     name: Verify Flatpak Build
     needs: [pre-validations, update-flatpak-manifest]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -449,12 +451,6 @@ jobs:
           sudo apt-get update & sudo apt-get install -y flatpak flatpak-builder
           sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y flathub org.kde.Sdk//6.11 org.kde.Platform//6.11
-
-      - name: Fix dconf permissions
-        run: |
-          sudo mkdir -p /run/user/$(id -u)
-          sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
-          mkdir -p /run/user/$(id -u)/dconf
 
       - name: Run Flatpak build
         run: |
