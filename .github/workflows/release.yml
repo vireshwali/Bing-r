@@ -410,3 +410,93 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+
+  update-flatpak-manifest:
+    name: Update Flatpak Manifest
+    needs: [pre-validations, tag-and-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+          fetch-depth: 0
+
+      - name: Update manifest with tag and commit hash
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          TAG="${{ needs.pre-validations.outputs.tag_name }}"
+          HASH=$(git rev-parse "$TAG")
+          MANIFEST="flatpak/io.github.vireshwali.Bing-r.yml"
+
+          echo "Tag: $TAG"
+          echo "Hash: $HASH"
+
+          sed -i "s|tag: .*|tag: ${TAG}|" "$MANIFEST"
+          sed -i "s|commit: .*|commit: ${HASH}|" "$MANIFEST"
+
+          echo "Updated manifest:"
+          grep -E '^\s+(tag|commit):' "$MANIFEST"
+
+      - name: Commit and push
+        run: |
+          git add flatpak/io.github.vireshwali.Bing-r.yml
+          if git diff --cached --quiet; then
+            echo "Manifest unchanged — skipping commit"
+          else
+            git commit -m "Release ${{ needs.pre-validations.outputs.tag_name }}: update Flatpak manifest"
+            git push
+          fi
+
+  flatpak-build-verify:
+    name: Verify Flatpak Build
+    needs: [pre-validations, update-flatpak-manifest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+
+      - name: Install Flatpak and Builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Add Flathub remote and install runtime
+        run: |
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub org.kde.Sdk//6.11 org.kde.Platform//6.11
+
+      - name: Run Flatpak build
+        run: |
+          GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.autocrlf GIT_CONFIG_VALUE_0=false \
+          flatpak-builder --force-clean --install-deps-from=flathub --ccache \
+            flatpak_bingr_build flatpak/io.github.vireshwali.Bing-r.yml
+
+      - name: Verify build artifacts
+        run: |
+          MANIFEST="flatpak/io.github.vireshwali.Bing-r.yml"
+          TAG="${{ needs.pre-validations.outputs.tag_name }}"
+
+          echo "=== Build Verification ==="
+          echo "Tag: $TAG"
+          echo ""
+
+          if [ ! -d "flatpak_bingr_build" ]; then
+            echo "::error::Build directory flatpak_bingr_build does not exist"
+            exit 1
+          fi
+
+          echo "Build directory exists"
+
+          if [ -f "flatpak_bingr_build/bingr" ]; then
+            echo "Binary: flatpak_bingr_build/bingr — OK"
+          else
+            echo "::warning::Binary not found at flatpak_bingr_build/bingr"
+          fi
+
+          find flatpak_bingr_build -name "*.desktop" -o -name "*.metainfo.xml" | head -5
+          echo ""
+          echo "Build verification complete"
