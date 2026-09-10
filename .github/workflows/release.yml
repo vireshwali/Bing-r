@@ -235,11 +235,6 @@ jobs:
           sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y flathub org.kde.Sdk//6.11
 
-      - name: Prepare dconf runtime directory
-        run: |
-          sudo mkdir -p /run/user/$(id -u)/dconf
-          sudo chmod 77700 /run/user/$(id -u)/dconf
-
       - name: Install uv
         uses: astral-sh/setup-uv@v10.0.1
 
