@@ -378,7 +378,7 @@ jobs:
   tag-and-release:
     name: Tag and Release
     needs: [pre-validations, post-validations]
-    if: ${{ false }} # disabled for now — remove this line to enable
+    #if: ${{ false }} # disabled for now — remove this line to enable
     runs-on: ubuntu-latest
     permissions:
       contents: write
