@@ -47,6 +47,11 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="1.5.8" date="2026-09-10">
+      <description>
+        <p>https://github.com/vireshwali/Bing-r/releases/tag/v1.5.8-Hangul</p>
+      </description>
+    </release>
     <release version="1.5.6" date="2026-09-08">
       <description>
         <p>Flatpak packaging and home screen improvements.</p>
