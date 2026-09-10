@@ -181,46 +181,9 @@ jobs:
             git push
           fi
 
-  generate-requirements:
-    name: Generate Requirements
-    needs: [pre-validations, update-version]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.pre-validations.outputs.branch_name }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v10.0.1
-
-      - name: Install Python
-        run: uv python install 3.12
-
-      - name: Install dependencies
-        run: uv sync --dev
-
-      - name: Generate flatpak requirements.txt
-        run: ./scripts/generate-flatpak-deps.sh
-
-      - name: Commit and push
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-          VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
-          git add flatpak/requirements.txt
-          if git diff --cached --quiet; then
-            echo "requirements.txt unchanged — skipping commit"
-          else
-            git commit -m "Release v${VERSION}-${CODENAME}: generate requirements.txt"
-            git push
-          fi
-
-  generate-pypi-deps:
-    name: Generate PyPI Dependencies
-    needs: [pre-validations, generate-requirements]
+  generate-flatpak-deps:
+    name: Generate Flatpak Dependencies
+    needs: [pre-validations, create-release-branch]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -244,19 +207,16 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
+      - name: Generate flatpak requirements.txt
+        run: ./scripts/generate-flatpak-deps.sh
+
       - name: Generate pypi-dependencies.yaml
         run: |
-          # Fix for dconf issues with flatpak
-          # 1. Create the base system run directory using sudo
+          # Fix dconf permission issue in CI
           sudo mkdir -p /run/user/$(id -u)
-
-          # 2. Dynamically change ownership to the active workflow user and group
           sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
-
-          # 3. Create the dconf folder natively as the active user
           mkdir -p /run/user/$(id -u)/dconf
 
-          # Run pypi deps generation
           .venv/bin/python3 .venv/lib/python3.12/site-packages/flatpak_pip_generator/__main__.py \
             --yaml \
             --requirements-file flatpak/requirements.txt \
@@ -272,17 +232,17 @@ jobs:
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME="${{ needs.pre-validations.outputs.codename }}"
-          git add flatpak/pypi-dependencies.yaml
+          git add flatpak/requirements.txt flatpak/pypi-dependencies.yaml
           if git diff --cached --quiet; then
-            echo "pypi-dependencies.yaml unchanged — skipping commit"
+            echo "Flatpak deps unchanged — skipping commit"
           else
-            git commit -m "Release v${VERSION}-${CODENAME}: generate pypi-dependencies.yaml"
+            git commit -m "Release v${VERSION}-${CODENAME}: generate flatpak dependencies"
             git push
           fi
 
   compile-qrc:
     name: Compile QRC Resources
-    needs: [pre-validations, generate-pypi-deps]
+    needs: [pre-validations, create-release-branch]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -321,7 +281,7 @@ jobs:
 
   post-validations:
     name: Post-Validations
-    needs: [pre-validations, compile-qrc]
+    needs: [pre-validations, update-version, generate-flatpak-deps, compile-qrc]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -340,35 +300,44 @@ jobs:
       - name: Sanity check generated files
         run: |
           ERRORS=0
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+
+          CURRENT=$(grep -oP '__version__ = "\K[^"]+' src/bingr/__init__.py)
+          if [ "$CURRENT" != "$VERSION" ]; then
+            echo "::error::Version mismatch: expected $VERSION, got $CURRENT"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "__init__.py version: $CURRENT — OK"
+          fi
 
           DEPS=$(grep -cE '^[a-zA-Z0-9_.-]+==' flatpak/requirements.txt || true)
           if [ "$DEPS" -lt 1 ]; then
             echo "::error::flatpak/requirements.txt has no dependencies"
             ERRORS=$((ERRORS + 1))
           else
-            echo "requirements.txt: $DEPS dependencies"
+            echo "requirements.txt: $DEPS dependencies — OK"
           fi
 
           if [ ! -s flatpak/pypi-dependencies.yaml ]; then
             echo "::error::flatpak/pypi-dependencies.yaml is missing or empty"
             ERRORS=$((ERRORS + 1))
           else
-            echo "pypi-dependencies.yaml: $(wc -l < flatpak/pypi-dependencies.yaml) lines"
+            echo "pypi-dependencies.yaml: $(wc -l < flatpak/pypi-dependencies.yaml) lines — OK"
           fi
 
           if [ ! -s src/bingr/qml_resources.py ]; then
             echo "::error::src/bingr/qml_resources.py is missing or empty"
             ERRORS=$((ERRORS + 1))
           else
-            echo "qml_resources.py: $(wc -l < src/bingr/qml_resources.py) lines"
+            echo "qml_resources.py: $(wc -l < src/bingr/qml_resources.py) lines — OK"
           fi
 
           if [ "$ERRORS" -gt 0 ]; then
-            echo "::error::Sanity check failed. $ERRORS file(s) are invalid."
+            echo "::error::Sanity check failed. $ERRORS check(s) failed."
             exit 1
           fi
 
-          echo "All generated files look good"
+          echo "All sanity checks passed"
 
       - name: Run lint check
         run: |
@@ -440,13 +409,26 @@ jobs:
           echo "Updated manifest:"
           grep -E '^\s+(tag|commit):' "$MANIFEST"
 
+      - name: Update metainfo.xml with new release
+        run: |
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          TAG="${{ needs.pre-validations.outputs.tag_name }}"
+          DATE=$(date -u +%Y-%m-%d)
+          METAINFO="flatpak/io.github.vireshwali.Bing-r.metainfo.xml"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${TAG}"
+
+          sed -i "/<releases>/a\\    <release version=\"${VERSION}\" date=\"${DATE}\">\n      <description>\n        <p>${RELEASE_URL}</p>\n      </description>\n    </release>" "$METAINFO"
+
+          echo "Updated metainfo.xml:"
+          grep -A 5 '<releases>' "$METAINFO"
+
       - name: Commit and push
         run: |
-          git add flatpak/io.github.vireshwali.Bing-r.yml
+          git add flatpak/io.github.vireshwali.Bing-r.yml flatpak/io.github.vireshwali.Bing-r.metainfo.xml
           if git diff --cached --quiet; then
-            echo "Manifest unchanged — skipping commit"
+            echo "Flatpak files unchanged — skipping commit"
           else
-            git commit -m "Release ${{ needs.pre-validations.outputs.tag_name }}: update Flatpak manifest"
+            git commit -m "Release ${{ needs.pre-validations.outputs.tag_name }}: update Flatpak manifest and metainfo"
             git push
           fi
 
@@ -464,6 +446,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
 
+      - name: Fix dconf permissions
+        run: |
+          sudo mkdir -p /run/user/$(id -u)
+          sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
+          mkdir -p /run/user/$(id -u)/dconf
+
       - name: Add Flathub remote and install runtime
         run: |
           sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
@@ -477,26 +465,53 @@ jobs:
 
       - name: Verify build artifacts
         run: |
-          MANIFEST="flatpak/io.github.vireshwali.Bing-r.yml"
+          ERRORS=0
           TAG="${{ needs.pre-validations.outputs.tag_name }}"
+          VERSION="${{ needs.pre-validations.outputs.version }}"
 
           echo "=== Build Verification ==="
           echo "Tag: $TAG"
+          echo "Version: $VERSION"
           echo ""
 
           if [ ! -d "flatpak_bingr_build" ]; then
             echo "::error::Build directory flatpak_bingr_build does not exist"
             exit 1
           fi
-
-          echo "Build directory exists"
+          echo "Build directory exists — OK"
 
           if [ -f "flatpak_bingr_build/bingr" ]; then
             echo "Binary: flatpak_bingr_build/bingr — OK"
           else
-            echo "::warning::Binary not found at flatpak_bingr_build/bingr"
+            echo "::error::Binary not found at flatpak_bingr_build/bingr"
+            ERRORS=$((ERRORS + 1))
           fi
 
-          find flatpak_bingr_build -name "*.desktop" -o -name "*.metainfo.xml" | head -5
+          DESKTOP=$(find flatpak_bingr_build -name "*.desktop" | head -1)
+          if [ -n "$DESKTOP" ]; then
+            echo "Desktop file: $DESKTOP — OK"
+          else
+            echo "::error::Desktop file not found in build output"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          METAINFO=$(find flatpak_bingr_build -name "*.metainfo.xml" | head -1)
+          if [ -n "$METAINFO" ]; then
+            echo "Metainfo: $METAINFO — OK"
+            if grep -q "version=\"${VERSION}\"" "$METAINFO"; then
+              echo "Metainfo version $VERSION — OK"
+            else
+              echo "::warning::Metainfo does not contain version $VERSION"
+            fi
+          else
+            echo "::error::Metainfo XML not found in build output"
+            ERRORS=$((ERRORS + 1))
+          fi
+
           echo ""
-          echo "Build verification complete"
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "::error::Build verification failed. $ERRORS check(s) failed."
+            exit 1
+          fi
+
+          echo "Build verification passed"
