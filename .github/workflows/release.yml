@@ -97,6 +97,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check for existing release branch
+        run: |
+          VERSION="${{ inputs.version }}"
+          CODENAME_LOWER="$(echo "${{ inputs.codename }}" | tr '[:upper:]' '[:lower:]')"
+          BRANCH="release/v${VERSION}-${CODENAME_LOWER}"
+
+          EXISTING=$(gh api --repo "${{ github.repository }}" "repos/${{ github.repository }}/branches/${BRANCH}" 2>&1 || true)
+          if echo "$EXISTING" | grep -q '"name"'; then
+            echo "::error::Branch $BRANCH already exists. Please delete it first."
+            exit 1
+          fi
+          echo "Branch $BRANCH is available"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Compute outputs
         id: compute
         run: |
@@ -155,8 +170,12 @@ jobs:
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add src/bingr/__init__.py
-          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: update version"
-          git push
+          if git diff --cached --quiet; then
+            echo "__init__.py unchanged — skipping commit"
+          else
+            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: update version"
+            git push
+          fi
 
   generate-requirements:
     name: Generate Requirements
@@ -188,8 +207,12 @@ jobs:
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add flatpak/requirements.txt
-          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate requirements.txt"
-          git push
+          if git diff --cached --quiet; then
+            echo "requirements.txt unchanged — skipping commit"
+          else
+            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate requirements.txt"
+            git push
+          fi
 
   generate-pypi-deps:
     name: Generate PyPI Dependencies
@@ -229,8 +252,12 @@ jobs:
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add flatpak/pypi-dependencies.yaml
-          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate pypi-dependencies.yaml"
-          git push
+          if git diff --cached --quiet; then
+            echo "pypi-dependencies.yaml unchanged — skipping commit"
+          else
+            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: generate pypi-dependencies.yaml"
+            git push
+          fi
 
   compile-qrc:
     name: Compile QRC Resources
@@ -264,8 +291,12 @@ jobs:
           VERSION="${{ needs.pre-validations.outputs.version }}"
           CODENAME_LOWER="${{ needs.pre-validations.outputs.codename_lower }}"
           git add src/bingr/qml_resources.py
-          git commit -m "Release v${VERSION}-${CODENAME_LOWER}: compile QRC resources"
-          git push
+          if git diff --cached --quiet; then
+            echo "qml_resources.py unchanged — skipping commit"
+          else
+            git commit -m "Release v${VERSION}-${CODENAME_LOWER}: compile QRC resources"
+            git push
+          fi
 
   post-validations:
     name: Post-Validations
