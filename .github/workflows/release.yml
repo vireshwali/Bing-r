@@ -406,8 +406,7 @@ jobs:
           echo "Tag: $TAG"
           echo "Hash: $HASH"
 
-          sed -i "s|tag: .*|tag: ${TAG}|" "$MANIFEST"
-          sed -i "s|commit: .*|commit: ${HASH}|" "$MANIFEST"
+          sed -i "/url:.*vireshwali\/Bing-r/,/^[[:space:]]*-[[:space:]]*type:/{s|tag: .*|tag: ${TAG}|;s|commit: .*|commit: ${HASH}|}" "$MANIFEST"
 
           echo "Updated manifest:"
           grep -E '^\s+(tag|commit):' "$MANIFEST"
