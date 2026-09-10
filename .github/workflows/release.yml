@@ -446,8 +446,9 @@ jobs:
 
       - name: Install Flatpak and Builder
         run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder
+          sudo apt-get update & sudo apt-get install -y flatpak flatpak-builder
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub org.kde.Sdk//6.11 org.kde.Platform//6.11
 
       - name: Fix dconf permissions
         run: |
@@ -455,16 +456,18 @@ jobs:
           sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
           mkdir -p /run/user/$(id -u)/dconf
 
-      - name: Add Flathub remote and install runtime
-        run: |
-          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.kde.Sdk//6.11 org.kde.Platform//6.11
-
       - name: Run Flatpak build
         run: |
+          # Fix dconf permission issue in CI
+          sudo mkdir -p /run/user/$(id -u)
+          sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
+          mkdir -p /run/user/$(id -u)/dconf
+
+          mkdir flatpak_bingr_build & cd flatpak_bingr_build
+
           GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.autocrlf GIT_CONFIG_VALUE_0=false \
-          flatpak-builder --force-clean --install-deps-from=flathub --ccache \
-            flatpak_bingr_build flatpak/io.github.vireshwali.Bing-r.yml
+          flatpak run --command=flathub-build org.flatpak.Builder --install \
+          ../flatpak/io.github.vireshwali.Bing-r.yml
 
       - name: Verify build artifacts
         run: |
@@ -475,7 +478,10 @@ jobs:
           echo "=== Build Verification ==="
           echo "Tag: $TAG"
           echo "Version: $VERSION"
+          echo "Workign Dir: $(pwd)"
           echo ""
+
+          cd ..
 
           if [ ! -d "flatpak_bingr_build" ]; then
             echo "::error::Build directory flatpak_bingr_build does not exist"
