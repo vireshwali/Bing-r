@@ -1,3 +1,4 @@
+
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
 It is supposed to be strictly declarative and only uses a subset of QML. If you edit
@@ -20,6 +21,7 @@ Item {
     //data properties
     property int channelId: -1
     property int indexCount: 1000000
+    property url logoPlaceholderUrl: "../images/television-big.svg"
     property url logoUrl: "https://i.imgur.com/qKLEGU7.png"
     property string countryCode: "CA"
     property string quality: "HD"
@@ -32,7 +34,7 @@ Item {
     property int feedCount: 5
     property bool isFavorite: true
     property string languages: "English, Portuguese, French, Danish, Pakistani, African, French, Hindu, Gujarati, punjabi, kashmiriCanadian"
-    property string websiteUrl: ""
+    property string websiteUrl: "tst"
 
     // Card body
     Rectangle {
@@ -85,6 +87,24 @@ Item {
             }
 
             Image {
+                id: logoPlaceholder
+                anchors.fill: parent
+                anchors.bottomMargin: 20
+                anchors.margins: 20
+                source: root.logoPlaceholderUrl
+                sourceSize {
+                    width: 200
+                    height: width * 9 / 16
+                }
+                cache: false
+                fillMode: Image.PreserveAspectFit
+                asynchronous: true
+                mipmap: true
+                transformOrigin: Item.Center
+                visible: logoImg.status !== Image.Ready
+            }
+
+            Image {
                 id: logoImg
                 anchors.fill: parent
                 anchors.bottomMargin: 20
@@ -97,8 +117,9 @@ Item {
                 cache: false
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
-                // mipmap: true
+                mipmap: true
                 transformOrigin: Item.Center
+                visible: status === Image.Ready
             }
 
             // Quality data
@@ -143,7 +164,8 @@ Item {
                     anchors.left: resolutionText.right
                     anchors.leftMargin: 6
                     anchors.verticalCenter: parent.verticalCenter
-                    source: (root.isFavorite) ? Qt.resolvedUrl("../images/heart-filled.svg") : ""
+                    source: (root.isFavorite) ? Qt.resolvedUrl(
+                                                    "../images/heart-filled.svg") : ""
                     sourceSize.width: 40
                     sourceSize.height: 40
                     cache: false
@@ -158,7 +180,9 @@ Item {
                 anchors.rightMargin: 8
                 width: 25
                 height: 12.5
-                source: root.countryCode !== "" ? "https://flagcdn.com/w40/" + root.countryCode.toLowerCase() + ".png" : ""
+                source: root.countryCode !== "" ? "https://flagcdn.com/w40/"
+                                                  + root.countryCode.toLowerCase(
+                                                      ) + ".png" : ""
                 sourceSize.width: 40
                 sourceSize.height: 20
                 cache: false
@@ -307,8 +331,9 @@ Item {
                 Connections {
                     target: gridPlayBtn.buttonMouseArea
                     function onClicked() {
-                        console.log("play clicked");
-                        ChannelsController.channelIdPlayRequested(root.channelId);
+                        console.log("play clicked")
+                        ChannelsController.channelIdPlayRequested(
+                                    root.channelId)
                     }
                 }
             }
@@ -317,7 +342,9 @@ Item {
                 id: gridFavBtn
                 height: 32
                 btnImageSize: 22
-                btnImageSource: (root.isFavorite) ? Qt.resolvedUrl("../images/heart-filled.svg") : Qt.resolvedUrl("../images/heart.svg")
+                btnImageSource: (root.isFavorite) ? Qt.resolvedUrl(
+                                                        "../images/heart-filled.svg") : Qt.resolvedUrl(
+                                                        "../images/heart.svg")
                 btnShadowBlur: 4
                 btnShadowSpread: 2
 
@@ -330,7 +357,7 @@ Item {
                 Connections {
                     target: gridFavBtn.buttonMouseArea
                     function onClicked() {
-                        ChannelsController.toggleFavorite(root.channelId);
+                        ChannelsController.toggleFavorite(root.channelId)
                     }
                 }
             }
@@ -348,7 +375,7 @@ Item {
                     target: gridWebsiteBtn.buttonMouseArea
                     function onClicked() {
                         if (root.websiteUrl !== "")
-                            Qt.openUrlExternally(root.websiteUrl);
+                            Qt.openUrlExternally(root.websiteUrl)
                     }
                 }
             }

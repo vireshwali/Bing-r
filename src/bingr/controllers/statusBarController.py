@@ -6,10 +6,11 @@ import asyncio
 import logging
 from collections import deque
 
-from PySide6.QtCore import QObject, QTimer, Signal
+from PySide6.QtCore import Property, QObject, QTimer, Signal
 from PySide6.QtQml import QmlElement, QmlSingleton
 from sqlalchemy import func, select
 
+from bingr import __codename__, __version__
 from bingr.common.eventBus import appEventBus
 from bingr.db.dbManager import DatabaseManager
 from bingr.db.models import Channel
@@ -53,6 +54,10 @@ class StatusBarController(QObject):
         appEventBus.statusBarInternetUpdate.connect(self._onInternetUpdate)
         appEventBus.statusBarDiskUpdate.connect(self._onDiskUpdate)
         appEventBus.statusBarRamUpdate.connect(self._onRamUpdate)
+
+    @Property(str, constant=True)
+    def appVersionSlug(self) -> str:
+        return f"v{__version__} {__codename__}"
 
     # ── Event bus handlers ────────────────────────────────────────
 

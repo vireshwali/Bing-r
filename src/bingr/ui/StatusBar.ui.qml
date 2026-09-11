@@ -178,7 +178,7 @@ Item {
                 id: appVersion
                 color: "#888888"
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("v1.4.3.2")
+                text: StatusBarController.appVersionSlug
                 font.pixelSize: root.fontSizePx
             }
         }

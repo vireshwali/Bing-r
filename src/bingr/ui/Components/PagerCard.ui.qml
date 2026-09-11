@@ -5,7 +5,7 @@ import QtQuick.Studio.DesignEffects
 Item {
     id: root
     width: 240
-    height: 280
+    height: 260
 
     property int cardRectDesignEffectSpread: 6
 
@@ -13,6 +13,7 @@ Item {
 
     //data props
     property int channelId: -1
+    property url placeholderLogoUrl: "../images/television-big.svg"
     property url logoUrl: "https://i.imgur.com/qKLEGU7.png"
     property string countryCode: "CA"
     property string displayName: "The Pet Collective aadasd asda"
@@ -62,10 +63,27 @@ Item {
             }
 
             Image {
+                id: logoPlaceholder
+                anchors.fill: parent
+                anchors.margins: 22
+                height: parent.height * 0.55
+                source: root.placeholderLogoUrl
+                sourceSize.width: parent.width
+                sourceSize.height: parent.height
+                fillMode: Image.PreserveAspectFit
+                asynchronous: true
+                mipmap: true
+                transformOrigin: Item.Center
+                visible: logoImage.status !== Image.Ready
+            }
+
+            Image {
+                id: logoImage
                 anchors.fill: parent
                 anchors.margins: 10
                 height: parent.height * 0.55
                 source: root.logoUrl
+                z: 2
                 sourceSize.width: parent.width
                 sourceSize.height: parent.height
                 cache: false
@@ -73,12 +91,13 @@ Item {
                 asynchronous: true
                 mipmap: true
                 transformOrigin: Item.Center
+                visible: status === Image.Ready
             }
         }
         Image {
             id: countryFlag
-            width: 22
-            height: 11
+            width: 25
+            height: 12.5
             anchors.bottom: cardLogo.bottom
             anchors.right: parent.right
             anchors.rightMargin: 8
@@ -87,6 +106,7 @@ Item {
             source: root.countryCode !== "" ? "https://flagcdn.com/w40/"
                                               + root.countryCode.toLowerCase(
                                                   ) + ".png" : ""
+            asynchronous: true
             z: 8
             sourceSize.width: 40
             sourceSize.height: 20
