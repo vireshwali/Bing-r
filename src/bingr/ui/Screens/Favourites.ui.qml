@@ -17,20 +17,45 @@ Item {
     height: 800
 
     property int topNavLeftMargin: 8
+    property string starterMsg: qsTr("You don't have any favourite channels yet.<br />Hit the heart button on channels to start adding your favourites.")
+    property bool channelsExist: true
 
     FavoritesController {
         id: favoritesController
+    }
+
+    Connections {
+        target: favoritesController
+        function onChannelsExistInApp(channelsExist) {
+            root.channelsExist = channelsExist
+        }
     }
 
     Rectangle {
         anchors.fill: parent
         color: Constants.backgroundColor
 
+        Text {
+            id: starterMsgLabel
+            width: parent.width * 0.8
+            text: root.starterMsg
+            font.letterSpacing: 0.2
+            anchors.centerIn: parent
+            color: Constants.textColorSecondary
+            font.pixelSize: 24
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignTop
+            lineHeight: 1.4
+            wrapMode: Text.WordWrap
+            font.wordSpacing: 0
+            font.bold: true
+            visible: !root.channelsExist
+        }
+
         FavoritesTopNav {
             id: favouritesTopNav
             anchors.left: parent.left
             anchors.top: parent.top
-            anchors.topMargin: 10
             anchors.leftMargin: root.topNavLeftMargin
             anchors.right: parent.right
         }
@@ -43,6 +68,7 @@ Item {
             anchors.bottom: parent.bottom
             channelsModel: favoritesController.favoritesGridViewModel
             gridController: favoritesController
+            visible: root.channelsExist
         }
     }
 }

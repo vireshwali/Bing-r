@@ -27,7 +27,7 @@ Item {
             id: channelsTopNav
             anchors.left: parent.left
             anchors.top: parent.top
-            anchors.topMargin: 10
+            //anchors.topMargin: 10
             anchors.leftMargin: root.topNavLeftMargin
             anchors.right: parent.right
         }
@@ -37,7 +37,7 @@ Item {
             height: parent.height * 0.26
             anchors.left: parent.left
             anchors.top: channelsTopNav.bottom
-            anchors.topMargin: 10
+            anchors.topMargin: 5
             anchors.right: parent.right
             heroModel: ChannelsController.channelsHeroViewModel
         }

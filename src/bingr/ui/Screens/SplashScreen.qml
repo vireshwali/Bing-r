@@ -1,26 +1,16 @@
 import QtQuick
 import QtQuick.Studio.DesignEffects
 import QtQuick.Effects
-
 import bingr.controllers
 
-Window {
+Item {
     id: root
-    objectName: "splashWindow" // _boot_app() finds this by name to close it
     width: 750
     height: 425
-    x: (Screen.width - width) / 2
-    y: (Screen.height - height) / 2
-    visible: true
 
-    title: qsTr("")
-
-    //this color is for visual etsting
-    //color: "#1c1c1c"
-    color: "#00000000"
-
-    // Frameless window flags to make it look like a real splash screen
-    flags: Qt.SplashScreen | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    SplashScreenController {
+        id: splashScreenController
+    }
 
     SystemPalette {
         id: systemPalette
@@ -52,7 +42,7 @@ Window {
 
         Image {
             id: splashBgImg
-            source: "images/splashscreen_bg.jpg"
+            source: "../images/splashscreen_bg.jpg"
             sourceSize.height: 400
             sourceSize.width: 700
             fillMode: Image.Stretch
@@ -143,7 +133,7 @@ Window {
             color: "#a0a0a0"
 
             Connections {
-                target: SplashScreenController
+                target: splashScreenController
                 function onProgressMsg(msg) {
                     console.log("progress msg received: ", msg)
                     loadingProgressMsgs.text = qsTr(msg)
@@ -154,12 +144,21 @@ Window {
         Text {
             id: appVersion
             color: "#a0a0a0"
-            text: SplashScreenController.appVersionSlug
+            text: splashScreenController.appVersionSlug
             anchors.right: title.right
             anchors.bottom: parent.bottom
             anchors.rightMargin: 8
             anchors.bottomMargin: 12
             font.pixelSize: 14
         }
+    }
+
+    Component.onCompleted: {
+        console.log("SplashScreen onCompleted called")
+        splashScreenController.doAppBoot()
+    }
+
+    Component.onDestruction: {
+        console.log("SplashScreen onDestruction called.")
     }
 }

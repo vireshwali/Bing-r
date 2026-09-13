@@ -45,5 +45,6 @@
         <file alias="user-logged-out.svg">ui/images/user-logged-out.svg</file>
         <file alias="user-sound.svg">ui/images/user-sound.svg</file>
         <file alias="user.svg">ui/images/user.svg</file>
+        <file alias="television-big.svg">ui/images/television-big.svg</file>
     </qresource>
 </RCC>

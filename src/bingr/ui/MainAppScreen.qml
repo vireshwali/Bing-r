@@ -19,19 +19,12 @@ Item {
 
     Timer {
         id: leftNavIdleTimer
-        interval: 3000
+        interval: 800
         repeat: false
         running: root.leftNavOpened && !root.leftNavHovered
         onTriggered: root.leftNavOpened = false
     }
 
-    // Component {
-    //     id: settingsScreenCOmponent
-    //     Settings {
-    //         id: settingsScreen
-    //         anchors.fill: parent
-    //     }
-    // }
     Rectangle {
         id: mainScreenRect
         border.width: 0
@@ -49,7 +42,7 @@ Item {
         }
 
         Connections {
-            target: homeScreen.homeController
+            target: homeScreenLoader.item.homeController
             function onChannelIdToPlay(channelId) {
                 console.log("onChannelIdToPlay from home " + channelId)
                 root.pendingChannelId = channelId
@@ -57,7 +50,7 @@ Item {
             }
         }
 
-        // left nav opena nd clsoe button connections
+        // left nav open and clsoe button connections
         Connections {
             target: openLeftNavBtn.buttonMouseArea
             function onClicked() {
@@ -76,14 +69,33 @@ Item {
         Connections {
             target: leftNav.homeMenuButton.buttonMouseArea
             function onClicked() {
-                mainStackContainer.currentIndex = 0
+                console.log("Home  Button clciked.")
+                //unset other screen laoders
                 settingsScreenLoader.sourceComponent = null
+
+                //set home screen
+                var homeScreenComp = Qt.createComponent("ui.Screens", "Home")
+                if (homeScreenComp.status === Component.Ready) {
+                    homeScreenLoader.sourceComponent = homeScreenComp
+                    homeScreenLoader.item.topNavLeftMargin = openLeftNavBtn.width + 10
+                    // homeScreenLoader.item.topNavHeight = openLeftNavBtn.height
+                    //         + openLeftNavBtn.anchors.topMargin + 8
+                    mainStackContainer.currentIndex = 0
+                } else {
+                    console.error("Error loading homeScreenComp component:",
+                                  homeScreenComp.errorString())
+                }
             }
         }
 
         Connections {
             target: leftNav.favouritesMenuButton.buttonMouseArea
             function onClicked() {
+                //unset other screen laoders
+                homeScreenLoader.sourceComponent = null
+                settingsScreenLoader.sourceComponent = null
+
+                //set screen
                 mainStackContainer.currentIndex = 1
             }
         }
@@ -97,20 +109,36 @@ Item {
         Connections {
             target: leftNav.channelsMenuButton.buttonMouseArea
             function onClicked() {
+                //unset other screen laoders
+                homeScreenLoader.sourceComponent = null
+                settingsScreenLoader.sourceComponent = null
+
+                //set screen
                 mainStackContainer.currentIndex = 2
             }
         }
 
         Connections {
-            target: homeScreen.addChannelsBtn1.buttonMouseArea
+            id: connections
+            target: homeScreenLoader.item.addChannelsBtn1.buttonMouseArea
             function onClicked() {
+                //unset other screen laoders
+                homeScreenLoader.sourceComponent = null
+                settingsScreenLoader.sourceComponent = null
+
+                //set screen
                 mainStackContainer.currentIndex = 3
             }
         }
 
         Connections {
-            target: homeScreen.addChannelsBtn2.buttonMouseArea
+            target: homeScreenLoader.item.addChannelsBtn2.buttonMouseArea
             function onClicked() {
+                //unset other screen laoders
+                homeScreenLoader.sourceComponent = null
+                settingsScreenLoader.sourceComponent = null
+
+                //set screen
                 mainStackContainer.currentIndex = 3
             }
         }
@@ -119,6 +147,10 @@ Item {
             target: leftNav.settingsMenuButton.buttonMouseArea
             function onClicked() {
                 console.log("Settings clciked.")
+                //unset other screen laoders
+                homeScreenLoader.sourceComponent = null
+
+                //set screen
                 settingsScreenLoader.sourceComponent = Qt.createComponent(
                             "ui.Screens", "Settings")
                 mainStackContainer.currentIndex = 4
@@ -131,7 +163,7 @@ Item {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.leftMargin: 8
-            anchors.topMargin: 10
+            anchors.topMargin: 5 // half of (screens.topnav height - OpenLeftNavButton.height)
             z: 4
         }
 
@@ -171,12 +203,15 @@ Item {
 
             // All screens are loaded at startup.
             // Changing 'currentIndex' toggles visibility instantly.
-            Home {
-                id: homeScreen
+            Loader {
+                id: homeScreenLoader
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                topMargin: openLeftNavBtn.height + 6
+                sourceComponent: Home {
+                    topNavLeftMargin: openLeftNavBtn.width + 10
+                    //topNavHeight: openLeftNavBtn.height + openLeftNavBtn.anchors.topMargin
+                }
             }
 
             Favourites {
@@ -184,7 +219,7 @@ Item {
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin + 4
+                topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin
             }
 
             // Playlists {
@@ -198,9 +233,8 @@ Item {
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin + 4
+                topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin
             }
-
             AddChannels {
                 id: addChannelsScreen
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter

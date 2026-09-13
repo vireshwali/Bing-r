@@ -14,7 +14,7 @@ import bingr.controllers 1.0
 Item {
     id: root
     width: 800
-    height: 40 // same as height of the openleftnav button
+    height: 55 // same as height of the openleftnav button
 
     //the parent screen provides this to a
     //ccomodate the left nav drawer Button on ui

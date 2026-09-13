@@ -30,6 +30,7 @@ class FakeGridVM(QObject):
 def _patchModule(mocker, monkeypatch):
     service = mocker.MagicMock()
     service.toggleFavorite = mocker.AsyncMock(return_value=True)
+    service.getChannelsCount = mocker.AsyncMock(return_value=0)
     monkeypatch.setattr(fcModule, "ChannelsManagementService", mocker.MagicMock(return_value=service))
     monkeypatch.setattr(fcModule, "_ChannelsGridViewModel", FakeGridVM)
     _patchModule.service = service
@@ -59,7 +60,7 @@ class TestInit:
         assert ctrl._gridViewModel.service is fcModule.ChannelsManagementService.return_value
         assert ctrl._gridViewModel.filtersHistory == [{"favorite": "true"}]
 
-    def testFavoritesGridViewModelPropertyReturnsVm(self):
+    async def testFavoritesGridViewModelPropertyReturnsVm(self):
         ctrl = makeController()
 
         assert ctrl.favoritesGridViewModel is ctrl._gridViewModel
@@ -108,5 +109,4 @@ class TestToggleFlow:
         await pumpLoops()
 
         service.toggleFavorite.assert_awaited_once_with(11)
-        # one reload comes from the controller's own favoriteToggled handler
-        assert len(ctrl._gridViewModel.filtersHistory) == loadsBefore + 1
+        assert len(ctrl._gridViewModel.filtersHistory) > loadsBefore

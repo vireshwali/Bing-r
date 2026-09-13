@@ -4,8 +4,6 @@ Sets QT_QUICK_CONTROLS_CONF, shows splash screen, initialises infra
 asynchronously, then transitions to App.qml with a minimum 3s splash.
 """
 
-import argparse
-
 # from PySide6.QtQml import QQmlDebuggingEnabler
 # # 1. Authorize the debugging system explicitly
 # QQmlDebuggingEnabler.enableDebugging(True)
@@ -26,7 +24,7 @@ from PySide6.QtCore import QTimer, QtMsgType, qInstallMessageHandler
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from bingr import qml_resources  # type: ignore # noqa: F401
+from bingr import qml_resources, runtime  # type: ignore # noqa: F401
 from bingr.common.appNetworkFactory import AppNetworkAccessManagerFactory
 from bingr.common.cache import initialize as initCache
 from bingr.common.commonUtils import isNuitka, trimHeap
@@ -54,7 +52,7 @@ from bingr.services.systemHealthMonitorService import SystemHealthMonitorService
 logger = logging.getLogger("bingr.main")
 
 MAX_WAIT_TIME_SECONDS = 4.0
-BACKGROUND_JOBS_START_DELAY_MINUTES = 1
+BACKGROUND_JOBS_START_DELAY_SECONDS = 5
 
 _QT_MSG_LEVEL_MAP = {
     QtMsgType.QtDebugMsg: logging.DEBUG,
@@ -76,12 +74,6 @@ def _qtMessageHandler(msgType, context, message):
 _systemHealth: SystemHealthMonitorService | None = None
 
 _activeJobs: list[Any] = []
-
-appEngine: QQmlApplicationEngine | None = None
-
-# ffprobe binary to use for playability validation. Defaults to whatever is on
-# PATH; pass --ffprobe-path <path> to point at a local build for development.
-FFPROBE_PATH: str | None = None
 
 projectRoot = Path(__file__).parent.parent.parent
 
@@ -120,46 +112,49 @@ def stopJobs() -> None:
             logger.warning("Error stopping job %s: %s", type(job).__name__, e)
 
 
-async def _bootApp(bootStart):
-    splashCtrl: SplashScreenControllerType = None
-    if not appEngine:
-        logger.critical("appEngine is not created — cannot boot.")
-        return
-    else:
-        splashCtrl: SplashScreenControllerType = appEngine.singletonInstance(
-            "bingr.controllers", "SplashScreenController"
-        )
+async def bootApp(splashCtrl: SplashScreenControllerType, bootStart: float):
+    if not splashCtrl:
+        logger.critical("splashCtrl is not created — cannot boot.")
+        sys.exit(-1)
 
     try:
         # sleep foa bit to let the splash screen render
         splashCtrl.publishProgressMsg("Starting application...")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
 
         splashCtrl.publishProgressMsg("Loading application configurations.....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
         cfg = getConfig()
 
-        # splashCtrl.publishProgressMsg("Setting  logging…")
-        await asyncio.sleep(0.5)
-        setupLogging()
-
         splashCtrl.publishProgressMsg("Initializing system caches....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
         initCache(cfg)
 
         splashCtrl.publishProgressMsg("Preparing databases and sources....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
 
         dbPath = cfg.dbPath()
         dbPath.parent.mkdir(parents=True, exist_ok=True)
         DatabaseManager.initialize(str(dbPath))
 
-        statusCtrl: StatusBarControllerType = appEngine.singletonInstance("bingr.controllers", "StatusBarController")
+        # statusCtrl: StatusBarControllerType = appEngine.singletonInstance("bingr.controllers", "StatusBarController")
         # _ac_mod.set_status_controller(statusCtrl)
 
-        global _systemHealth
-        workspace = cfg.workspacePath()
-        _systemHealth = SystemHealthMonitorService(workspace)
+        splashCtrl.publishProgressMsg("Starting health monitoring service....")
+        await asyncio.sleep(0.7)
+
+        # workspace = cfg.workspacePath()
+        # runtime.systemHealthMonitorService = SystemHealthMonitorService(workspace)
+        # runtime.systemHealthMonitorService.runAllChecksOnDemand()
+
+        # Delay periodic jobs until the app has fully settled (1 minute)
+        logger.info(
+            "Periodic background scheduling will start in %s second(s)",
+            BACKGROUND_JOBS_START_DELAY_SECONDS,
+        )
+        QTimer.singleShot(BACKGROUND_JOBS_START_DELAY_SECONDS * 1000, startJobs)
+        splashCtrl.publishProgressMsg("Scheduling jobs....")
+        await asyncio.sleep(0.7)
 
         splashCtrl.publishProgressMsg("Starting application interface...")
 
@@ -167,27 +162,8 @@ async def _bootApp(bootStart):
         if elapsed < MAX_WAIT_TIME_SECONDS:
             await asyncio.sleep(4.0 - elapsed)
 
-        appEngine.loadFromModule("ui", "App")
-
-        # refresh the counts and start the timer to refresh them periodically
-        statusCtrl.refreshCounts()
-        statusCtrl.startCountTimer()
-
-        for obj in appEngine.rootObjects():
-            if obj.objectName() == "splashWindow":
-                obj.close()  # type: ignore
-                break
-
-        _systemHealth.runAllChecksOnDemand()
-
-        # Delay periodic jobs until the app has fully settled (1 minute)
-        logger.info(
-            "Periodic background scheduling will start in %s minute(s)",
-            BACKGROUND_JOBS_START_DELAY_MINUTES,
-        )
-        QTimer.singleShot(BACKGROUND_JOBS_START_DELAY_MINUTES * 60 * 1000, startJobs)
-
-        logger.info("Bingr initialized successfully — ready")
+        # Main app window called form splash screen controller, so splash screen can close itself and load the main window
+        logger.info("App Boot completed.")
 
     except Exception as e:
         splashCtrl.publishProgressMsg(f"Initialization failed: {e}")
@@ -195,31 +171,22 @@ async def _bootApp(bootStart):
 
 
 def main() -> None:
-    """Application entry point — can be called from gui-scripts or __main__."""
-    global FFPROBE_PATH
-    # Parse our own args before QGuiApplication consumes sys.argv.
-    parser = argparse.ArgumentParser(description="Bingr", add_help=False)
-    parser.add_argument("--ffprobe-path", dest="ffprobePath", default=None)
-    parsed, _ = parser.parse_known_args(sys.argv[1:])
-    if parsed.ffprobePath:
-        FFPROBE_PATH = parsed.ffprobePath
-        logger.info("Using ffprobe at: %s", FFPROBE_PATH)
-
-    app = QGuiApplication(sys.argv)
+    runtime.appGlobal = QGuiApplication(sys.argv)
 
     # Capture QML console.log/warn/error + Qt warnings into bingr.log. Must be
     # installed before any QML loads (splash screen below).
     qInstallMessageHandler(_qtMessageHandler)
 
     cfg = getConfig()  # noqa: F841
+    setupLogging()
 
     async def _shutdownDb():
         logger.info("Shutting down database engine …")
         await DatabaseManager.shutdown()
 
-    app.aboutToQuit.connect(lambda: asyncio.ensure_future(_shutdownDb()))
-    app.aboutToQuit.connect(stopJobs)
-    app.aboutToQuit.connect(trimHeap)
+    runtime.appGlobal.aboutToQuit.connect(lambda: asyncio.ensure_future(_shutdownDb()))
+    runtime.appGlobal.aboutToQuit.connect(stopJobs)
+    runtime.appGlobal.aboutToQuit.connect(trimHeap)
 
     appEngineLocal = QQmlApplicationEngine()
 
@@ -229,26 +196,16 @@ def main() -> None:
 
         appEngineLocal.addImportPath(Path(__file__).resolve().parent)
 
-    # Use setdefault so an already-set env (e.g. Flatpak finish-args
-    # --env=QT_QUICK_CONTROLS_CONF=/app/share/bingr/) is not overridden.
-    os.environ.setdefault("QT_QUICK_CONTROLS_CONF", str(projectRoot / "qtquickcontrols2.conf"))
+        # Use setdefault so an already-set env (e.g. Flatpak finish-args
+        # --env=QT_QUICK_CONTROLS_CONF=/app/share/bingr/) is not overridden.
+        os.environ.setdefault("QT_QUICK_CONTROLS_CONF", str(projectRoot / "qtquickcontrols2.conf"))
 
-    if appEngineLocal:
-        appEngineLocal.loadFromModule("ui", "SplashScreen")
+        # Make appEngine available to _bootApp via closure
+        runtime.appEngineGlobal = appEngineLocal
+        runtime.appEngineGlobal.loadFromModule("ui", "SplashScreenLoader")
 
-    if not appEngineLocal or not appEngineLocal.rootObjects():
+    if not runtime.appEngineGlobal or not runtime.appEngineGlobal.rootObjects():
         sys.exit(-1)
-
-    # Make appEngine available to _bootApp via closure
-    global appEngine
-    appEngine = appEngineLocal
-
-    def _scheduleBoot():
-        asyncio.create_task(  # noqa: RUF006
-            _bootApp(time.monotonic())
-        )
-
-    QTimer.singleShot(0, _scheduleBoot)
 
     QtAsyncio.run(quit_qapp=True, handle_sigint=True)
 

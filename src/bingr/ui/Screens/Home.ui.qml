@@ -19,10 +19,12 @@ Item {
 
     property alias addChannelsBtn1: addChannelsBtn1
     property alias addChannelsBtn2: addChannelsBtn2
+    property alias homeController: homeController
 
     property string starterMsg: qsTr("Your channels library is empty. <br/>Inorder to start watching, use the add channels button to add your m3u playlist files or urls.")
-    property int topMargin: 10
-    property alias homeController: homeController
+    property int topMargin: 0
+    property int topNavLeftMargin: 8
+    property int topNavHeight: 55
     property bool channelsExist: true
 
     HomeController {
@@ -90,16 +92,37 @@ Item {
             anchors.fill: parent
             visible: root.channelsExist
 
-            IconButtonWithText {
-                id: addChannelsBtn2
-                height: 40
+            Item {
+                id: topNav
+                height: root.topNavHeight
                 anchors.top: parent.top
+                anchors.topMargin: root.topMargin
+                anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.topMargin: 10 //align it with the OpenLeftNavButton on main screen
-                anchors.rightMargin: 16
-                z: 10 //keep it above the flickable
-                btnShadowBlur: 8
-                btnShadowSpread: 8
+                anchors.leftMargin: root.topNavLeftMargin
+
+                Text {
+                    text: qsTr("Home")
+                    color: Constants.textColorScreenTitle
+                    font.pixelSize: Constants.textFontPixelSizeScreenTitle
+                    font.weight: Font.Bold
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                IconButtonWithText {
+                    id: addChannelsBtn2
+                    height: 36
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.right: parent.right
+                    anchors.rightMargin: 16
+                    btnRadius: 14
+                    btnImageSize: 26
+                    btnTextSize: Constants.textFontPixelSizeDefault
+                    z: 10 //keep it above the flickable
+                    btnShadowBlur: 6
+                    btnShadowSpread: 6
+                }
             }
 
             Flickable {
@@ -108,7 +131,7 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.topMargin: root.topMargin
+                anchors.topMargin: topNav.height + 2
                 contentHeight: homeContentColumn.childrenRect.height
                 clip: true
 
@@ -134,7 +157,7 @@ Item {
                     HorizontalPager {
                         id: topCategory1
                         width: parent.width
-                        height: 312
+                        height: 300
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel1SectionTitle)
                         channelModel: homeController.pagerViewModel1
@@ -145,7 +168,7 @@ Item {
                     HorizontalPager {
                         id: topCategory2
                         width: parent.width
-                        height: 312
+                        height: 300
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel2SectionTitle)
                         channelModel: homeController.pagerViewModel2
@@ -156,7 +179,7 @@ Item {
                     HorizontalPager {
                         id: topCategory3
                         width: parent.width
-                        height: 312
+                        height: 300
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel3SectionTitle)
                         channelModel: homeController.pagerViewModel3
@@ -167,7 +190,7 @@ Item {
                     HorizontalPager {
                         id: topCategory4
                         width: parent.width
-                        height: 312
+                        height: 300
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel4SectionTitle)
                         channelModel: homeController.pagerViewModel4
@@ -178,7 +201,7 @@ Item {
                     HorizontalPager {
                         id: recentlyAddedChannels
                         width: parent.width
-                        height: 312
+                        height: 300
                         title: qsTr("Recently Added")
                         channelModel: homeController.recentlyAddedChannelsViewModel
                         visible: homeController.recentlyAddedChannelsViewModel !== null

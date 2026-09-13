@@ -132,6 +132,7 @@ Item {
         interval: root.autoScrollInterval
         repeat: true
         running: true
+        Component.onDestruction: autoScrollTimer.stop()
     }
 
     Connections {
