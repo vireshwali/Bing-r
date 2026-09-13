@@ -183,7 +183,7 @@ jobs:
           fi
 
   generate-flatpak-deps:
-    name: Generate Flatpak Dependencies
+    name: Generate Pypi Flatpak Dependencies
     needs: [pre-validations, create-release-branch]
     runs-on: ubuntu-latest
     permissions:
@@ -402,7 +402,7 @@ jobs:
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           TAG="${{ needs.pre-validations.outputs.tag_name }}"
-          HASH=$(git rev-parse "$TAG")
+          HASH=$(git rev-list -n 1 "$TAG")
           MANIFEST="flatpak/io.github.vireshwali.Bing-r.yml"
 
           echo "Tag: $TAG"
