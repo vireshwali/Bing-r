@@ -10,7 +10,7 @@ def _resetLogging():
     bingrLogger = logging.getLogger("bingr")
     bingrLogger.setLevel(logging.NOTSET)
     bingrLogger.handlers.clear()
-    for name in ("alembic.runtime.migration", "alembic.runtime.plugins"):
+    for name in ("alembic", "alembic.runtime.migration", "alembic.runtime.plugins"):
         logging.getLogger(name).setLevel(logging.NOTSET)
 
 
@@ -69,8 +69,8 @@ class TestSetupLogging:
         setupLogging()
         assert logging.getLogger("bingr").level == logging.INFO
 
-    def testAlembicPluginLevelSetToWarning(self, mockConfig):
+    def testAlembicPluginLevelSetToInfo(self, mockConfig):
         from bingr.common.logging import setupLogging
 
         setupLogging()
-        assert logging.getLogger("alembic.runtime.plugins").level == logging.WARNING
+        assert logging.getLogger("alembic").level == logging.INFO

@@ -43,7 +43,12 @@ class ImportM3uTestBase:
 
         session = mocker.MagicMock()
         session.execute = mocker.AsyncMock(return_value=result)
-        session.add = mocker.MagicMock()
+        _id_seq = iter(range(1, 1000))
+        session.add = mocker.MagicMock(
+            side_effect=lambda obj: object.__setattr__(obj, "id", next(_id_seq))
+            if getattr(obj, "id", None) is None
+            else None
+        )
         session.flush = mocker.AsyncMock()
         session.commit = mocker.AsyncMock()
 
