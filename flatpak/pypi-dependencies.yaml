@@ -1,4 +1,4 @@
-# Generated with flatpak-pip-generator --yaml --requirements-file=flatpak/requirements.txt --output=flatpak/pypi-dependencies --ignore-pkg=PySide6,pyside6,pyside6-addons,pyside6-essentials,shiboken6 --prefer-wheels=pyside6,pyside6-addons,pyside6-ds,pyside6-essentials,shiboken6,lxml,orjson,greenlet,markupsafe,mpv,sqlalchemy,alembic --wheel-arches x86_64,aarch64 --runtime org.kde.Sdk//6.11
+# Generated with flatpak-pip-generator --yaml --requirements-file flatpak/requirements.txt --output flatpak/pypi-dependencies --ignore-pkg PySide6,pyside6,pyside6-addons,pyside6-essentials,shiboken6 --prefer-wheels pyside6,pyside6-addons,pyside6-ds,pyside6-essentials,shiboken6,lxml,orjson,greenlet,markupsafe,mpv,sqlalchemy,alembic --wheel-arches x86_64,aarch64 --runtime org.kde.Sdk//6.11
 name: pypi-dependencies
 buildsystem: simple
 build-commands: []
