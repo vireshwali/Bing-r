@@ -242,5 +242,5 @@ modules:
   sources:
   - type: git
     url: https://github.com/vireshwali/Bing-r.git
-    tag: v1.5.7-Hangul
-    commit: 9f584e9c81ff8f7aecac8a14f5ae265ac789e8d6
+    tag: v1.6.0-Hangul
+    commit: 57ce2f551438b0c122191b8ee176b7d47468e9fd
