@@ -55,6 +55,11 @@ class StatusBarController(QObject):
         appEventBus.statusBarDiskUpdate.connect(self._onDiskUpdate)
         appEventBus.statusBarRamUpdate.connect(self._onRamUpdate)
 
+        self.startCountTimer()
+
+        # Do a refresh immediately
+        self.refreshCounts()
+
     @Property(str, constant=True)
     def appVersionSlug(self) -> str:
         return f"v{__version__} {__codename__}"

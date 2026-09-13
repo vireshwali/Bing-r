@@ -195,9 +195,11 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y flatpak
+          sudo apt-get update && sudo apt-get install -y flatpak qemu-user-static binfmt-support
+          sudo systemctl restart systemd-binfmt.service
           sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.kde.Sdk//6.11
+          sudo flatpak install -y flathub org.kde.Platform//6.11 org.kde.Sdk//6.11 io.qt.PySide.BaseApp//6.11
+          sudo flatpak install -y flathub org.kde.Platform//6.11 org.kde.Sdk//6.11 io.qt.PySide.BaseApp//6.11 --arch=aarch64
 
       - name: Install uv
         uses: astral-sh/setup-uv@v10.0.1
@@ -223,8 +225,8 @@ jobs:
             --requirements-file flatpak/requirements.txt \
             --output flatpak/pypi-dependencies \
             --ignore-pkg 'PySide6,pyside6,pyside6-addons,pyside6-essentials,shiboken6' \
-            --prefer-wheels 'pyside6-ds,lxml,orjson,greenlet,markupsafe,mpv,sqlalchemy,alembic,pyside6,pyside6-addons,pyside6-essentials,shiboken6' \
-            --wheel-arches x86_64 \
+            --prefer-wheels 'pyside6,pyside6-addons,pyside6-ds,pyside6-essentials,shiboken6,lxml,orjson,greenlet,markupsafe,mpv,sqlalchemy,alembic' \
+            --wheel-arches x86_64,aarch64 \
             --runtime 'org.kde.Sdk//6.11'
 
       - name: Commit and push

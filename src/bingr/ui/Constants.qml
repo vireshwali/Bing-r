@@ -61,6 +61,7 @@ QtObject {
     readonly property color textColorChannelsHeroLabels: '#bfbfbf'
 
     // Text csizes
+    readonly property int textFontPixelSizeScreenTitle: 22
     readonly property int textFontPixelSizeUpper3: 20
     readonly property int textFontPixelSizeUpper2: 18
     readonly property int textFontPixelSizeUpper1: 16

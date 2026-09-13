@@ -34,6 +34,7 @@ class FavoritesController(QObject):
     """
 
     gridIsLoading = Signal(bool)
+    channelsExistInApp = Signal(bool)
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -47,13 +48,16 @@ class FavoritesController(QObject):
         appEventBus.toggleFavoriteRequested.connect(self._onToggleRequested)
         appEventBus.favoriteToggled.connect(self._onFavoriteToggled)
 
+        asyncio.create_task(self.checkIfChannelsExistInApp())  # noqa: RUF006
+
     @Property(QObject, constant=True)
     def favoritesGridViewModel(self) -> QObject:
         return self._gridViewModel
 
     @Slot(int)
     def _onToggleRequested(self, channelId: int) -> None:
-        asyncio.ensure_future(self._doToggle(channelId))  # noqa: RUF006
+        task = asyncio.ensure_future(self._doToggle(channelId))
+        task.add_done_callback(lambda fut: asyncio.create_task(self.checkIfChannelsExistInApp()))
 
     async def _doToggle(self, channelId: int) -> None:
         isFavorite = await self._service.toggleFavorite(channelId)
@@ -69,3 +73,8 @@ class FavoritesController(QObject):
         """
         self._gridViewModel.setFilters(favorite="true")
         logger.info("Reloaded favourites grid after toggle of channel %s", channelId)
+
+    async def checkIfChannelsExistInApp(self):
+        count = await self._service.getChannelsCount({"favorite": "true"})
+        hasChannels = count > 0
+        self.channelsExistInApp.emit(hasChannels)

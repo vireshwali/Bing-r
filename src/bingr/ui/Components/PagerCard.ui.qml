@@ -68,6 +68,7 @@ Item {
                 anchors.margins: 22
                 height: parent.height * 0.55
                 source: root.placeholderLogoUrl
+                cache: true
                 sourceSize.width: parent.width
                 sourceSize.height: parent.height
                 fillMode: Image.PreserveAspectFit

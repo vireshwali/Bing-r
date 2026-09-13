@@ -13,7 +13,7 @@ SeparatorRect 1.0 SeparatorRect.ui.qml
 TagText 1.0 TagText.ui.qml
 TopNavComboBox 1.0 TopNavComboBox.ui.qml
 CarouselArrow 1.0 CarouselArrow.ui.qml
-HorizontalPager 1.0 HorizontalPager.ui.qml
+HorizontalPager 1.0 HorizontalPager.qml
 ChannelsTopNav 1.0 ChannelsTopNav.ui.qml
 ChannelsHeroSection 1.0 ChannelsHeroSection.ui.qml
 ChannelsGrid 1.0 ChannelsGrid.ui.qml

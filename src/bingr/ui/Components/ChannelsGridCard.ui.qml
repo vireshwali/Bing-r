@@ -96,7 +96,7 @@ Item {
                     width: 200
                     height: width * 9 / 16
                 }
-                cache: false
+                cache: true
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 mipmap: true

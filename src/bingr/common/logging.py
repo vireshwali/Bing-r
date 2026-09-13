@@ -50,7 +50,23 @@ def setupLogging():
 
     bingrLogger.propagate = False
 
-    logging.getLogger("alembic.runtime.plugins").setLevel(logging.WARNING)
+    # Explicitly route third-party loggers to your proper handlers
+    # This ensures they use your format and go to both stderr + bingr.log
+
+    third_party_loggers = [
+        {"httpx": logging.ERROR},
+        {"httpcore": logging.ERROR},
+        {"alembic": logging.INFO},
+    ]
+    for logger_info in third_party_loggers:
+        logger_name = next(iter(logger_info.keys()))
+        level = logger_info[logger_name]
+        tgt_logger = logging.getLogger(logger_name)
+        tgt_logger.setLevel(level)
+        tgt_logger.handlers.clear()
+        tgt_logger.addHandler(stderrHandler)
+        tgt_logger.addHandler(fileHandler)
+        tgt_logger.propagate = False  # Stops the fallback to root stderr
 
     # Route print()/stdout/stderr output (mpv, ffmpeg, stray prints) through
     # the logger tree so it lands in bingr.log as well. Handlers above already

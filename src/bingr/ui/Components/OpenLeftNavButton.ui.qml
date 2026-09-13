@@ -4,17 +4,17 @@ import ui
 
 Item {
     id: root
-    width: 40
-    height: 40
+    width: 45
+    height: width
 
     // properties
     readonly property url openIconImageSource: Qt.resolvedUrl(
-                                                      "../images/arrows-open.svg")
+                                                   "../images/arrows-open.svg")
     readonly property double openIconImageOpacityDefault: 0.6
 
     readonly property double hoverBackgroundColor: Qt.lighter(
-                                                         Constants.backgroundColor,
-                                                         1.8)
+                                                       Constants.backgroundColor,
+                                                       1.8)
 
     //Export the MouseArea so parent files can bind to it
     property alias buttonMouseArea: mouseArea
@@ -23,18 +23,21 @@ Item {
         id: bgRect
         anchors.fill: parent
         color: Constants.backgroundColor
-        radius: 18
+        radius: width / 2
         border.width: 0
 
         Image {
             id: openIconImage
-            width: 28
-            height: 28
+            width: 30
+            height: 30
             anchors.centerIn: parent
             source: root.openIconImageSource
+            cache: true
+            mipmap: true
+            asynchronous: true
             opacity: root.openIconImageOpacityDefault
-            sourceSize.height: 28
-            sourceSize.width: 28
+            sourceSize.height: 30
+            sourceSize.width: 30
             fillMode: Image.PreserveAspectFit
         }
 

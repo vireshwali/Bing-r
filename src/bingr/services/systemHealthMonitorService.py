@@ -33,7 +33,7 @@ class SystemHealthMonitorService(QObject):
         self._lastRamStatus: str | None = None
 
         appEventBus.systemHealthCheckRequested.connect(self.runAllChecksOnDemand)
-        logger.debug("SystemHealthMonitorService initialized.")
+        logger.info("SystemHealthMonitorService initialized.")
 
     def runAllChecksOnDemand(self):
         appEventBus.statusBarProgressUpdate.emit("Checking system health...")

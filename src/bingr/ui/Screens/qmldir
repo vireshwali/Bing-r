@@ -1,5 +1,6 @@
 module ui.Screens
 
+SplashScreen 1.0 SplashScreen.qml
 AddChannels 1.0 AddChannels.ui.qml
 Channels 1.0 Channels.ui.qml
 Favourites 1.0 Favourites.ui.qml

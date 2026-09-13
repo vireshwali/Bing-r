@@ -14,7 +14,7 @@ import bingr.controllers 1.0
 Item {
     id: root
     width: 1000
-    height: 40 // same as height of the openleftnav button
+    height: 55 // same as height of the openleftnav button
 
     //the parent screen provides this to a
     //ccomodate the left nav drawer Button on ui
@@ -282,14 +282,16 @@ Item {
             Connections {
                 target: channelsSearch.textInput
                 function onAccepted() {
-                    ChannelsController.applyFiltersWithSearch(channelsSearch.textInput.text)
+                    ChannelsController.applyFiltersWithSearch(
+                                channelsSearch.textInput.text)
                 }
             }
 
             Connections {
                 target: channelsSearch.buttonMouseArea
                 function onClicked() {
-                    ChannelsController.applyFiltersWithSearch(channelsSearch.textInput.text)
+                    ChannelsController.applyFiltersWithSearch(
+                                channelsSearch.textInput.text)
                 }
             }
         }

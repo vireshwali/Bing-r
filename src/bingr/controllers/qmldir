@@ -1,6 +1,6 @@
 module bingr.controllers
 
-singleton SplashScreenController 1.0 SplashScreenController.qml
+SplashScreenController 1.0 SplashScreenController.qml
 singleton StatusBarController 1.0 StatusBarController.qml
 singleton ChannelsController 1.0 ChannelsController.qml
 AddNewSourcesController 1.0 AddNewSourcesController.qml

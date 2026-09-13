@@ -14,7 +14,7 @@ from bingr.common.eventBus import appEventBus
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_INTERVAL_SECONDS = 60
+_DEFAULT_INTERVAL_SECONDS = 30
 
 
 class SystemHealthMonitorJob(QObject):
@@ -26,6 +26,10 @@ class SystemHealthMonitorJob(QObject):
         self._timer.setInterval(_DEFAULT_INTERVAL_SECONDS * 1000)
         self._timer.timeout.connect(self._emit)
         self._timer.start()
+
+        # Do first run immediately
+        # appEventBus.systemHealthCheckRequested.emit()
+
         logger.info(
             "SystemHealthMonitorJob scheduled to run every %s second(s)",
             _DEFAULT_INTERVAL_SECONDS,
