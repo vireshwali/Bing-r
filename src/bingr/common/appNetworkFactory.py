@@ -15,7 +15,7 @@ from PySide6.QtQml import QQmlNetworkAccessManagerFactory
 
 logger = logging.getLogger(__name__)
 
-NETWORK_CACHE_MAX_BYTES = 50 * 1024 * 1024
+NETWORK_CACHE_MAX_BYTES = 15 * 1024 * 1024
 
 
 class AppNetworkAccessManagerFactory(QQmlNetworkAccessManagerFactory):

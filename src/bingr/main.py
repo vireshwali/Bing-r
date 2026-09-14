@@ -42,6 +42,7 @@ from bingr.controllers.settingsController import SettingsController  # type: ign
 from bingr.controllers.splashScreenController import SplashScreenController  # type: ignore # noqa: F401
 from bingr.controllers.statusBarController import StatusBarController  # type: ignore  # noqa: F401
 from bingr.db.dbManager import DatabaseManager
+from bingr.jobs.memoryTrimJob import MemoryTrimJob
 from bingr.jobs.systemHealthMonitorJob import SystemHealthMonitorJob
 from bingr.services.processM3UFilesService import M3UFilesProcessor  # type: ignore # noqa: F401
 from bingr.services.systemHealthMonitorService import SystemHealthMonitorService  # type: ignore
@@ -99,6 +100,7 @@ def startJobs() -> None:
     # TODO: Re-enable when reachability probing strategy is revisited.
     # _activeJobs.append(ReachabilityCheckJob(ffprobePath=FFPROBE_PATH))
     _activeJobs.append(SystemHealthMonitorJob())
+    _activeJobs.append(MemoryTrimJob())
     logger.info("All periodic jobs started.")
 
 

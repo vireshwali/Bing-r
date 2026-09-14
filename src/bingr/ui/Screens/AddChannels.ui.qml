@@ -38,10 +38,22 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
+        Text {
+            id: subHeaderLabel
+            text: qsTr("You can import your m3u playlist files or urls here. <i><u>Note: Do not add m3u8 stream files here.</u></i>")
+            anchors.top: headerLabel.bottom
+            anchors.topMargin: 12
+            color: Constants.textColorSecondary
+            font.pixelSize: Constants.textFontPixelSizeDefault
+            anchors.horizontalCenterOffset: 0
+            font.bold: true
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+
         Rectangle {
             id: contectAreaRect
             color: Constants.backgroundColor
-            anchors.verticalCenterOffset: 16
+            anchors.verticalCenterOffset: 20
             width: rectangle.width * 0.65
             height: rectangle.height * 0.8
             anchors.centerIn: parent
