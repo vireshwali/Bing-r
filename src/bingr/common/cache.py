@@ -57,6 +57,8 @@ class FileDataCache:
 
     def __init__(self):
         self._store: dict[str, list[dict[str, Any]]] = {}
+        self._indexes: dict[str, Any] = {}
+        self._resetCallbacks: list = []
 
     @property
     def _apiDir(self) -> Path:
@@ -127,6 +129,54 @@ class FileDataCache:
     def clear(self):
         """Clear the in-memory cache. Next load() re-reads from disk."""
         self._store.clear()
+
+    def loadIndex(self, name: str, key: str) -> dict[str, dict[str, Any]]:
+        """Build and cache a dict index keyed by *key* from dataset *name*.
+
+        Returns ``{item[key]: item}`` for fast O(1) lookups.
+        Built lazily on first call, then cached for subsequent calls.
+        """
+        cacheKey = f"{name}:{key}"
+        if cacheKey in self._indexes:
+            return self._indexes[cacheKey]
+        data = self.load(name)
+        idx = {item.get(key): item for item in data if item.get(key) is not None}
+        self._indexes[cacheKey] = idx
+        logger.debug("built index %s: %d entries", cacheKey, len(idx))
+        return idx
+
+    def loadGroupIndex(self, name: str, key: str) -> dict[str, list[dict[str, Any]]]:
+        """Build and cache a grouped index keyed by *key* from dataset *name*.
+
+        Returns ``{item[key]: [items]}`` for fast grouped lookups.
+        Built lazily on first call, then cached for subsequent calls.
+        """
+        cacheKey = f"group:{name}:{key}"
+        if cacheKey in self._indexes:
+            return self._indexes[cacheKey]
+        data = self.load(name)
+        idx: dict[str, list[dict[str, Any]]] = {}
+        for item in data:
+            k = item.get(key)
+            if k is not None:
+                idx.setdefault(k, []).append(item)
+        self._indexes[cacheKey] = idx
+        logger.debug("built group index %s: %d groups", cacheKey, len(idx))
+        return idx
+
+    def clearData(self):
+        """Clear all in-memory data and indexes. Next load() re-reads from disk."""
+        self._store.clear()
+        self._indexes.clear()
+        for cb in self._resetCallbacks:
+            try:
+                cb()
+            except Exception as e:
+                logger.warning("cache reset callback error: %s", e)
+
+    def onReset(self, callback):
+        """Register a callable to be invoked when clearData() is called."""
+        self._resetCallbacks.append(callback)
 
 
 # ── bootstrap ─────────────────────────────────────────────────

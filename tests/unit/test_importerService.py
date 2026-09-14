@@ -155,6 +155,7 @@ class TestImportFromFile(ImportM3uTestBase):
 
         existing = SimpleNamespace(
             id=5,
+            channel_id="one.us",
             m3u_provided_uris=[],
             tvg_ids=[],
             titles=[],
@@ -167,17 +168,30 @@ class TestImportFromFile(ImportM3uTestBase):
             categories=[],
             updated_at="old",
         )
-        mocker.patch.object(
-            importer_module,
-            "_findChannel",
-            new=mocker.AsyncMock(side_effect=[None, existing]),
-        )
+
+        _sm, session = sessionMaker
+        batchResult = mocker.MagicMock()
+        batchResult.scalars.return_value.all.return_value = [existing]
+
+        async def _execute(stmt):
+            stmt_str = str(stmt)
+            if "m3u_sources" in stmt_str and "input_" in stmt_str:
+                noneResult = mocker.MagicMock()
+                noneResult.scalar_one_or_none.return_value = None
+                return noneResult
+            return batchResult
+
+        session.execute = mocker.AsyncMock(side_effect=_execute)
+
         src_file = self._m3uFile(tmp_path, "merge.m3u")
 
         source = await importM3u("unit_test", m3uPath=src_file, config=cfg)
 
-        assert source.channel_count == 1  # second segment merged, not counted
-        assert existing.m3u_provided_uris == [{"url": "https://a.com/2.m3u8", "reachable": True}]
+        assert source.channel_count == 0  # both segments merged into existing
+        assert existing.m3u_provided_uris == [
+            {"url": "https://a.com/1.m3u8", "reachable": True},
+            {"url": "https://a.com/2.m3u8", "reachable": True},
+        ]
         assert existing.tvg_ids == ["one.us"]
         assert existing.updated_at != "old"
 

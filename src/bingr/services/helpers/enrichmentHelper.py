@@ -19,6 +19,41 @@ _countryCodeAliases: dict[str, str] = {
     "UK": "GB",
 }
 
+_LANG_CODE_ALIASES: dict[str, str] = {
+    "alb": "sqi",
+    "arm": "hye",
+    "baq": "eus",
+    "bur": "mya",
+    "chi": "zho",
+    "cze": "ces",
+    "dut": "nld",
+    "fre": "fra",
+    "geo": "kat",
+    "ger": "deu",
+    "gre": "ell",
+    "ice": "isl",
+    "mac": "mkd",
+    "mao": "mri",
+    "may": "msa",
+    "per": "fas",
+    "rum": "ron",
+    "jap": "jpn",
+    "tib": "bod",
+    "tcc": "sot",
+}
+
+_countryIdx: dict[str, dict[str, Any]] | None = None
+_countryNameCodeSet: set[str] | None = None
+
+
+def _resetEnrichmentIndexes():
+    global _countryIdx, _countryNameCodeSet
+    _countryIdx = None
+    _countryNameCodeSet = None
+
+
+getFileCache().onReset(_resetEnrichmentIndexes)
+
 
 def _normalizeCountryCode(code: str) -> str:
     """Return a canonical ISO 3166-1 alpha-2 code.
@@ -38,11 +73,13 @@ def ensureAllCaches():
 def _expandCountry(code: str) -> dict[str, Any] | None:
     if not code:
         return None
-    data = getFileCache().load("countries")
+    global _countryIdx
+    if _countryIdx is None:
+        _countryIdx = {_normalizeCountryCode(c.get("code", "")): c for c in getFileCache().load("countries")}
     codeUpper = _normalizeCountryCode(code)
-    for c in data:
-        if _normalizeCountryCode(c.get("code", "")).upper() == codeUpper:
-            return {"code": codeUpper, "name": c.get("name", ""), "flag": c.get("flag", "")}
+    c = _countryIdx.get(codeUpper)
+    if c is not None:
+        return {"code": codeUpper, "name": c.get("name", ""), "flag": c.get("flag", "")}
     logger.warning("country miss: %s not found", code)
     return None
 
@@ -50,10 +87,10 @@ def _expandCountry(code: str) -> dict[str, Any] | None:
 def _expandSubdivision(code: str) -> dict[str, Any] | None:
     if not code:
         return None
-    data = getFileCache().load("subdivisions")
-    for s in data:
-        if s.get("code", "") == code:
-            return {"code": s["code"], "name": s.get("name", ""), "country": s.get("country", "")}
+    idx = getFileCache().loadIndex("subdivisions", "code")
+    s = idx.get(code)
+    if s is not None:
+        return {"code": s["code"], "name": s.get("name", ""), "country": s.get("country", "")}
     logger.warning("subdivision miss: %s not found", code)
     return None
 
@@ -61,11 +98,11 @@ def _expandSubdivision(code: str) -> dict[str, Any] | None:
 def _expandRegion(code: str) -> dict[str, Any] | None:
     if not code:
         return None
-    data = getFileCache().load("regions")
+    idx = getFileCache().loadIndex("regions", "code")
     codeUpper = code.upper()
-    for r in data:
-        if r.get("code", "").upper() == codeUpper:
-            return {"code": r["code"], "name": r.get("name", "")}
+    r = idx.get(codeUpper) or idx.get(code)
+    if r is not None:
+        return {"code": r["code"], "name": r.get("name", "")}
     logger.warning("region miss: %s not found", code)
     return None
 
@@ -73,11 +110,10 @@ def _expandRegion(code: str) -> dict[str, Any] | None:
 def _expandCity(code: str) -> dict[str, Any] | None:
     if not code:
         return None
-    data = getFileCache().load("cities")
-    codeLower = code.lower()
-    for c in data:
-        if c.get("code", "").lower() == codeLower:
-            return {"code": c["code"], "name": c.get("name", ""), "country": c.get("country", "")}
+    idx = getFileCache().loadIndex("cities", "code")
+    c = idx.get(code) or idx.get(code.lower())
+    if c is not None:
+        return {"code": c["code"], "name": c.get("name", ""), "country": c.get("country", "")}
     logger.warning("city miss: %s not found", code)
     return None
 
@@ -101,14 +137,14 @@ def _expandBroadcastArea(raw: str) -> dict[str, Any] | None:
 def _expandCategories(ids: list[str]) -> list[dict[str, Any]]:
     if not ids:
         return []
-    data = getFileCache().load("categories")
+    idx = getFileCache().loadIndex("categories", "id")
     idSet = set(ids)
     found = [
-        {"id": c.get("id", ""), "name": c.get("name", ""), "description": c.get("description", "")}
-        for c in data
-        if c.get("id") in idSet
+        {"id": cid, "name": c.get("name", ""), "description": c.get("description", "")}
+        for cid in idSet
+        if (c := idx.get(cid)) is not None
     ]
-    missing = set(ids) - {c["id"] for c in found}
+    missing = idSet - {c["id"] for c in found}
     if missing:
         logger.warning("categories miss: %s not found in API", missing)
     return found
@@ -117,10 +153,16 @@ def _expandCategories(ids: list[str]) -> list[dict[str, Any]]:
 def _expandLanguages(codes: list[str]) -> list[dict[str, Any]]:
     if not codes:
         return []
-    data = getFileCache().load("languages")
-    codeSet = set(codes)
-    found = [{"code": c.get("code", ""), "name": c.get("name", "")} for c in data if c.get("code") in codeSet]
-    missing = set(codes) - {c["code"] for c in found}
+    idx = getFileCache().loadIndex("languages", "code")
+    resolved: dict[str, str] = {}
+    for code in codes:
+        resolved[code] = _LANG_CODE_ALIASES.get(code, code)
+    found = [
+        {"code": apiCode, "name": c.get("name", "")}
+        for origCode, apiCode in resolved.items()
+        if (c := idx.get(apiCode)) is not None
+    ]
+    missing = {c for c in codes if resolved[c] not in idx}
     if missing:
         logger.warning("languages miss: %s not found in API", missing)
     return found
@@ -129,36 +171,38 @@ def _expandLanguages(codes: list[str]) -> list[dict[str, Any]]:
 def isCountryName(value: str) -> bool:
     if not value:
         return False
-    data = getFileCache().load("countries")
+    global _countryNameCodeSet
+    if _countryNameCodeSet is None:
+        data = getFileCache().load("countries")
+        _countryNameCodeSet = set()
+        for c in data:
+            _countryNameCodeSet.add(c.get("name", "").lower())
+            _countryNameCodeSet.add(c.get("code", "").lower())
     lower = value.lower().strip()
-    return any(lower == c.get("name", "").lower() or lower == c.get("code", "").lower() for c in data)
+    return lower in _countryNameCodeSet
 
 
 def lookupChannel(tvg_id: str) -> dict[str, Any] | None:
     if not tvg_id:
         return None
     searchId = stripSuffix(tvg_id)
-    channels = getFileCache().load("channels")
-    for ch in channels:
-        if ch.get("id") == searchId:
-            return ch
-    return None
+    idx = getFileCache().loadIndex("channels", "id")
+    return idx.get(searchId)
 
 
 def lookupFeeds(channel_id: str) -> list[dict[str, Any]]:
     if not channel_id:
         return []
-    data = getFileCache().load("feeds")
-    feeds = [f for f in data if f.get("channel") == channel_id]
-    return feeds
+    idx = getFileCache().loadGroupIndex("feeds", "channel")
+    return idx.get(channel_id, [])
 
 
 def lookupStreams(channel_id: str, feed_id: str | None) -> list[dict[str, Any]]:
     if not feed_id or not channel_id:
         return []
-    data = getFileCache().load("streams")
-    streams = [s for s in data if s.get("feed") == feed_id and s.get("channel") == channel_id]
-    return streams
+    idx = getFileCache().loadGroupIndex("streams", "feed")
+    feedStreams = idx.get(feed_id, [])
+    return [s for s in feedStreams if s.get("channel") == channel_id]
 
 
 _SUFFIX_FORMAT_MAP: dict[str, str | None] = {

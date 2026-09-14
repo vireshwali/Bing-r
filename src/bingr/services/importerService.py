@@ -7,6 +7,7 @@ loop with dedup/merge logic.
 """
 
 import asyncio
+import gc
 import logging
 import traceback
 from datetime import datetime
@@ -19,6 +20,8 @@ import m3u8  # pyright: ignore[reportMissingModuleSource]
 import orjson  # pyright: ignore[reportMissingModuleSource]
 from sqlalchemy import select
 
+from bingr.common.cache import getFileCache
+from bingr.common.commonUtils import trimHeap
 from bingr.common.config import getConfig
 from bingr.common.constants import KEYS
 from bingr.common.exceptions import (
@@ -138,7 +141,6 @@ async def _insertChannel(session, channel_id: str, sourceId: int, enriched: dict
     )
     session.add(channel)
     await session.flush()
-    logger.info("db: inserted channel channel_id=%r (source_id=%d)", channel_id, sourceId)
     return channel
 
 
@@ -193,31 +195,44 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
         src = (await session.execute(select(M3USource).where(M3USource.id == sourceId))).scalar_one()
         src.m3u_provided_epg_url = orjson.dumps(epgUrls).decode()
 
-    count = 0
-    errors = 0
+    # Phase 1: pre-enrich all segments
+    segments = []
     for i, seg in enumerate(playlist.segments, 1):
         try:
             enriched = enrichSegment(seg)
         except Exception as e:
             logger.error("Failed to enrich segment %d: %s", i, e)
-            errors += 1
             continue
 
         chId = resolveChannelId(sourceName or f"src_{sourceId}", enriched)
         uri = enriched.get("uri", "")
-        tvg_id = enriched.get("tvg_id", "")
 
         if not uri:
             logger.warning("import: segment %d has no URI, skipping", i)
             continue
 
-        existing = await _findChannel(session, chId)
+        segments.append((chId, enriched))
+
+    # Phase 2: batch-find existing channels in one query
+    allChannelIds = list({chId for chId, _ in segments})
+    existingMap: dict[str, Channel] = {}
+    if allChannelIds:
+        stmt = select(Channel).where(Channel.channel_id.in_(allChannelIds))
+        result = (await session.execute(stmt)).scalars().all()
+        existingMap = {ch.channel_id: ch for ch in result}
+
+    # Phase 3: upsert each segment using the pre-fetched map
+    count = 0
+    for chId, enriched in segments:
+        existing = existingMap.get(chId)
+        tvg_id = enriched.get("tvg_id", "")
+
         if existing:
             uris = existing.m3u_provided_uris or []
-            is_dup_uri = any(u.get("url") == uri for u in uris if isinstance(u, dict))
+            is_dup_uri = any(u.get("url") == enriched.get("uri", "") for u in uris if isinstance(u, dict))
 
             if not is_dup_uri:
-                existing.m3u_provided_uris = _mergeUniqueUris(uris, [uri])
+                existing.m3u_provided_uris = _mergeUniqueUris(uris, [enriched.get("uri", "")])
 
             existing.tvg_ids = _mergeUniqueStr(existing.tvg_ids, [tvg_id], caseSensitive=True)
             existing.titles = _mergeUniqueStr(existing.titles, [enriched.get("title", "")], caseSensitive=False)
@@ -245,6 +260,7 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
             await _linkM3uChannel(session, existing.id, sourceId)
         else:
             channel = await _insertChannel(session, chId, sourceId, enriched)
+            existingMap[chId] = channel
             await _upsertFeeds(session, channel.id, enriched)
             await _linkM3uChannel(session, channel.id, sourceId)
             count += 1
@@ -338,3 +354,7 @@ async def importM3u(
             reason="unexpected_error",
             details={"traceback": traceback.format_exc()},
         ) from e
+    finally:
+        getFileCache().clearData()
+        gc.collect()
+        trimHeap()
