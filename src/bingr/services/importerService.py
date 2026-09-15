@@ -98,13 +98,6 @@ def _mergeCategories(existing: list[dict[str, Any]] | None, newCats: list[dict[s
     return current
 
 
-async def _findChannel(session, channel_id: str) -> Channel | None:
-    if not channel_id:
-        return None
-    stmt = select(Channel).where(Channel.channel_id == channel_id)
-    return (await session.execute(stmt)).scalar_one_or_none()
-
-
 async def _insertChannel(session, channel_id: str, sourceId: int, enriched: dict[str, Any]) -> Channel:
     chData = enriched.get("channel") or {}
     _, prefix, suffix = parseTvgId(enriched.get("tvg_id", ""))
