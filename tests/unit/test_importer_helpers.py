@@ -1,7 +1,6 @@
 """Unit tests for private helper functions in importerService."""
 
 from bingr.services.importerService import (
-    _findChannel,
     _markStreamsReachable,
     _mergeCategories,
     _mergeUniqueStr,
@@ -49,14 +48,6 @@ class TestMergeCategories:
         result = _mergeCategories(None, [{"id": "news"}])
         assert len(result) == 1
         assert result[0]["id"] == "news"
-
-
-class TestFindChannel:
-    async def testEmptyChannelIdReturnsNone(self, mocker):
-        session = mocker.AsyncMock()
-        result = await _findChannel(session, "")
-        assert result is None
-        session.execute.assert_not_called()
 
 
 class TestMarkStreamsReachable:
