@@ -62,7 +62,7 @@ MPV_OPTIONS = {
     "slang": "no",
     "subs_fallback": "no",
     "subs_fallback_forced": "no",
-    "sub_create_cc_track": "yes",
+    # "sub_create_cc_track": "yes",
     # "sub_fix_timing": "yes",
     # "sub_visibility": "yes",
     # "subs_fallback": "yes",
