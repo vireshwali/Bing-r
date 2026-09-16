@@ -14,11 +14,14 @@ finish-args:
 - --socket=pulseaudio
 - --env=QML_IMPORT_PATH=/app/share/bingr
 - --env=QT_QUICK_CONTROLS_CONF=/app/share/bingr/qtquickcontrols2.conf
-- --env=LD_LIBRARY_PATH=/app/lib
+- --env=LD_LIBRARY_PATH=/app/lib:/app/lib64
 - --env=GTK_MODULES=
 - --env=QT_NO_SESSIONMANAGEMENT=1
 cleanup-commands:
 - /app/cleanup-BaseApp.sh
+build-options:
+  env:
+    PKG_CONFIG_PATH: /app/lib/pkgconfig:/app/lib64/pkgconfig:/app/share/pkgconfig
 modules:
 - name: libass
   cleanup:

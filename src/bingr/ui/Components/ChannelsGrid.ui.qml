@@ -422,7 +422,7 @@ Item {
         //model: dummyChannelsModel // fallback for design-time
         cellWidth: root.cardWidth + root.gridSpacing
         cellHeight: root.cardWidth + 75 + root.gridSpacing
-        cacheBuffer: 30
+        cacheBuffer: 80
         clip: true
 
         //boundsBehavior: Flickable.StopAtBounds

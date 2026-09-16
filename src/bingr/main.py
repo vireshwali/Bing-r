@@ -53,7 +53,7 @@ from bingr.services.systemHealthMonitorService import SystemHealthMonitorService
 logger = logging.getLogger("bingr.main")
 
 MAX_WAIT_TIME_SECONDS = 4.0
-BACKGROUND_JOBS_START_DELAY_SECONDS = 5
+BACKGROUND_JOBS_START_DELAY_SECONDS = 10
 
 _QT_MSG_LEVEL_MAP = {
     QtMsgType.QtDebugMsg: logging.DEBUG,
@@ -122,18 +122,18 @@ async def bootApp(splashCtrl: SplashScreenControllerType, bootStart: float):
     try:
         # sleep foa bit to let the splash screen render
         splashCtrl.publishProgressMsg("Starting application...")
-        await asyncio.sleep(0.7)
+        await asyncio.sleep(0.5)
 
         splashCtrl.publishProgressMsg("Loading application configurations.....")
-        await asyncio.sleep(0.7)
+        await asyncio.sleep(0.5)
         cfg = getConfig()
 
         splashCtrl.publishProgressMsg("Initializing system caches....")
-        await asyncio.sleep(0.7)
+        await asyncio.sleep(0.5)
         initCache(cfg)
 
         splashCtrl.publishProgressMsg("Preparing databases and sources....")
-        await asyncio.sleep(0.7)
+        await asyncio.sleep(0.5)
 
         dbPath = cfg.dbPath()
         dbPath.parent.mkdir(parents=True, exist_ok=True)
@@ -143,7 +143,7 @@ async def bootApp(splashCtrl: SplashScreenControllerType, bootStart: float):
         # _ac_mod.set_status_controller(statusCtrl)
 
         splashCtrl.publishProgressMsg("Starting health monitoring service....")
-        await asyncio.sleep(0.7)
+        await asyncio.sleep(0.5)
 
         # workspace = cfg.workspacePath()
         # runtime.systemHealthMonitorService = SystemHealthMonitorService(workspace)
@@ -156,13 +156,13 @@ async def bootApp(splashCtrl: SplashScreenControllerType, bootStart: float):
         )
         QTimer.singleShot(BACKGROUND_JOBS_START_DELAY_SECONDS * 1000, startJobs)
         splashCtrl.publishProgressMsg("Scheduling jobs....")
-        await asyncio.sleep(0.7)
+        await asyncio.sleep(0.5)
 
         splashCtrl.publishProgressMsg("Starting application interface...")
 
         elapsed = time.monotonic() - bootStart
         if elapsed < MAX_WAIT_TIME_SECONDS:
-            await asyncio.sleep(4.0 - elapsed)
+            await asyncio.sleep(MAX_WAIT_TIME_SECONDS - elapsed)
 
         # Main app window called form splash screen controller, so splash screen can close itself and load the main window
         logger.info("App Boot completed.")
