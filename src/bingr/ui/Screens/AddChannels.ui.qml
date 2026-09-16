@@ -40,7 +40,7 @@ Item {
 
         Text {
             id: subHeaderLabel
-            text: qsTr("You can import your m3u playlist files or urls here. <i><u>Note: Do not add m3u8 stream files here.</u></i>")
+            text: qsTr("You can import your m3u playlist files or urls here. <i><u>Note: Do not add m3u8 stream files or urls here.</u></i>")
             anchors.top: headerLabel.bottom
             anchors.topMargin: 12
             color: Constants.textColorSecondary
