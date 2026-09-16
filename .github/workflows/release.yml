@@ -182,67 +182,67 @@ jobs:
             git push
           fi
 
-  generate-flatpak-deps:
-    name: Generate Pypi Flatpak Dependencies
-    needs: [pre-validations, create-release-branch]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.pre-validations.outputs.branch_name }}
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y flatpak qemu-user-static binfmt-support
-          sudo systemctl restart systemd-binfmt.service
-          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.kde.Platform//6.11 org.kde.Sdk//6.11 io.qt.PySide.BaseApp//6.11
-          sudo flatpak install -y flathub org.kde.Platform//6.11 org.kde.Sdk//6.11 io.qt.PySide.BaseApp//6.11 --arch=aarch64
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v10.0.1
-
-      - name: Install Python
-        run: uv python install 3.12
-
-      - name: Install dependencies
-        run: uv sync --dev
-
-      - name: Generate flatpak requirements.txt
-        run: ./scripts/generate-flatpak-deps.sh
-
-      - name: Generate pypi-dependencies.yaml
-        run: |
-          # Fix dconf permission issue in CI
-          sudo mkdir -p /run/user/$(id -u)
-          sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
-          mkdir -p /run/user/$(id -u)/dconf
-
-          .venv/bin/python3 .venv/lib/python3.12/site-packages/flatpak_pip_generator/__main__.py \
-            --yaml \
-            --requirements-file flatpak/requirements.txt \
-            --output flatpak/pypi-dependencies \
-            --ignore-pkg 'PySide6,pyside6,pyside6-addons,pyside6-essentials,shiboken6' \
-            --prefer-wheels 'pyside6,pyside6-addons,pyside6-ds,pyside6-essentials,shiboken6,lxml,orjson,greenlet,markupsafe,mpv,sqlalchemy,alembic' \
-            --wheel-arches x86_64,aarch64 \
-            --runtime 'org.kde.Sdk//6.11'
-
-      - name: Commit and push
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-          VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
-          git add flatpak/requirements.txt flatpak/pypi-dependencies.yaml
-          if git diff --cached --quiet; then
-            echo "Flatpak deps unchanged — skipping commit"
-          else
-            git commit -m "Release v${VERSION}-${CODENAME}: generate flatpak dependencies"
-            git pull --rebase origin "${{ needs.pre-validations.outputs.branch_name }}"
-            git push
-          fi
+  # generate-flatpak-deps:
+  #   name: Generate Pypi Flatpak Dependencies
+  #   needs: [pre-validations, create-release-branch]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #       with:
+  #         ref: ${{ needs.pre-validations.outputs.branch_name }}
+  #
+  #     - name: Install system dependencies
+  #       run: |
+  #         sudo apt-get update && sudo apt-get install -y flatpak qemu-user-static binfmt-support
+  #         sudo systemctl restart systemd-binfmt.service
+  #         sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+  #         sudo flatpak install -y flathub org.kde.Platform//6.11 org.kde.Sdk//6.11 io.qt.PySide.BaseApp//6.11
+  #         sudo flatpak install -y flathub org.kde.Platform//6.11 org.kde.Sdk//6.11 io.qt.PySide.BaseApp//6.11 --arch=aarch64
+  #
+  #     - name: Install uv
+  #       uses: astral-sh/setup-uv@v10.0.1
+  #
+  #     - name: Install Python
+  #       run: uv python install 3.12
+  #
+  #     - name: Install dependencies
+  #       run: uv sync --dev
+  #
+  #     - name: Generate flatpak requirements.txt
+  #       run: ./scripts/generate-flatpak-deps.sh
+  #
+  #     - name: Generate pypi-dependencies.yaml
+  #       run: |
+  #         # Fix dconf permission issue in CI
+  #         sudo mkdir -p /run/user/$(id -u)
+  #         sudo chown -R $(id -u):$(id -g) /run/user/$(id -u)
+  #         mkdir -p /run/user/$(id -u)/dconf
+  #
+  #         .venv/bin/python3 .venv/lib/python3.12/site-packages/flatpak_pip_generator/__main__.py \
+  #           --yaml \
+  #           --requirements-file flatpak/requirements.txt \
+  #           --output flatpak/pypi-dependencies \
+  #           --ignore-pkg 'PySide6,pyside6,pyside6-addons,pyside6-essentials,shiboken6' \
+  #           --prefer-wheels 'pyside6,pyside6-addons,pyside6-ds,pyside6-essentials,shiboken6,lxml,orjson,greenlet,markupsafe,mpv,sqlalchemy,alembic' \
+  #           --wheel-arches x86_64,aarch64 \
+  #           --runtime 'org.kde.Sdk//6.11'
+  #
+  #     - name: Commit and push
+  #       run: |
+  #         git config user.name "${{ github.actor }}"
+  #         git config user.email "${{ github.actor }}@users.noreply.github.com"
+  #         VERSION="${{ needs.pre-validations.outputs.version }}"
+  #         CODENAME="${{ needs.pre-validations.outputs.codename }}"
+  #         git add flatpak/requirements.txt flatpak/pypi-dependencies.yaml
+  #         if git diff --cached --quiet; then
+  #           echo "Flatpak deps unchanged — skipping commit"
+  #         else
+  #           git commit -m "Release v${VERSION}-${CODENAME}: generate flatpak dependencies"
+  #           git pull --rebase origin "${{ needs.pre-validations.outputs.branch_name }}"
+  #           git push
+  #         fi
 
   compile-qrc:
     name: Compile QRC Resources
@@ -286,7 +286,7 @@ jobs:
 
   post-validations:
     name: Post-Validations
-    needs: [pre-validations, update-version, generate-flatpak-deps, compile-qrc]
+    needs: [pre-validations, update-version, compile-qrc]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
