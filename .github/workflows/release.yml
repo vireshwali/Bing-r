@@ -401,9 +401,9 @@ jobs:
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
-          TAG="${{ needs.pre-validations.outputs.tag_name }}"
-          HASH=$(git rev-list -n 1 "$TAG")
-          MANIFEST="flatpak/io.github.vireshwali.Bing-r.yml"
+          export TAG="${{ needs.pre-validations.outputs.tag_name }}"
+          export HASH=$(git rev-list -n 1 "$TAG")
+          export MANIFEST="flatpak/io.github.vireshwali.Bing-r.yml"
 
           echo "Tag: $TAG"
           echo "Hash: $HASH"
