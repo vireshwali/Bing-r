@@ -362,20 +362,6 @@ jobs:
           ref: ${{ needs.pre-validations.outputs.branch_name }}
           fetch-depth: 0
 
-      - name: Create tag
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-          TAG="${{ needs.pre-validations.outputs.tag_name }}"
-          VERSION="${{ needs.pre-validations.outputs.version }}"
-          CODENAME="${{ needs.pre-validations.outputs.codename }}"
-          git tag -a "$TAG" -m "Release v${VERSION}-${CODENAME}"
-          echo "Created tag: $TAG"
-
-      - name: Push tag
-        run: |
-          git push origin "${{ needs.pre-validations.outputs.tag_name }}"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -397,12 +383,18 @@ jobs:
           ref: ${{ needs.pre-validations.outputs.branch_name }}
           fetch-depth: 0
 
+      - name: Fetch release tag
+        run: |
+          TAG="${{ needs.pre-validations.outputs.tag_name }}"
+          git fetch origin "refs/tags/$TAG:refs/tags/$TAG" || \
+          git fetch origin "tag $TAG"
+
       - name: Update manifest with tag and commit hash
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
           export TAG="${{ needs.pre-validations.outputs.tag_name }}"
-          export HASH=$(git rev-list -n 1 "$TAG")
+          export HASH=$(git rev-list -n 1 "refs/tags/$TAG")
           export MANIFEST="flatpak/io.github.vireshwali.Bing-r.yml"
 
           echo "Tag: $TAG"
