@@ -408,7 +408,40 @@ jobs:
           echo "Tag: $TAG"
           echo "Hash: $HASH"
 
-          sed -i "/url:.*vireshwali\/Bing-r/,/^[[:space:]]*-[[:space:]]*type:/{s|tag: .*|tag: ${TAG}|;s|commit: .*|commit: ${HASH}|}" "$MANIFEST"
+          python3 << 'PYEOF'
+          import os, re
+
+          tag = os.environ["TAG"]
+          commit = os.environ["HASH"]
+          manifest = os.environ["MANIFEST"]
+
+          with open(manifest) as f:
+              content = f.read()
+
+          # Case 1: type: dir -> type: git with url + tag + commit
+          old_src = '  sources:\n  - type: dir\n    path: ..'
+          new_src = '  sources:\n' \
+              f'  - type: git\n' \
+              f'    url: https://github.com/vireshwali/Bing-r.git\n' \
+              f'    tag: {tag}\n' \
+              f'    commit: {commit}'
+          content = content.replace(old_src, new_src)
+
+          # Case 2: already type: git -> update tag + commit
+          content = re.sub(
+              r'(url: https://github\.com/vireshwali/Bing-r\.git\n    tag: )[^\n]+',
+              rf'\g<1>{tag}',
+              content
+          )
+          content = re.sub(
+              rf'(tag: {re.escape(tag)}\n    commit: )[a-f0-9]+',
+              rf'\g<1>{commit}',
+              content
+          )
+
+          with open(manifest, 'w') as f:
+              f.write(content)
+          PYEOF
 
           echo "Updated manifest:"
           grep -E '^\s+(tag|commit):' "$MANIFEST"
