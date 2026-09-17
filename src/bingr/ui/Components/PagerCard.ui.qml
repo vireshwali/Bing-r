@@ -4,8 +4,8 @@ import QtQuick.Studio.DesignEffects
 
 Item {
     id: root
-    width: 240
-    height: 260
+    width: 220
+    height: 240
 
     property int cardRectDesignEffectSpread: 6
 
@@ -37,7 +37,7 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: 4
-            height: parent.height * 0.55
+            height: parent.height * 0.5
             gradient: Gradient {
                 GradientStop {
                     position: 0.05
@@ -65,8 +65,7 @@ Item {
             Image {
                 id: logoPlaceholder
                 anchors.fill: parent
-                anchors.margins: 22
-                height: parent.height * 0.55
+                anchors.margins: 16
                 source: root.placeholderLogoUrl
                 cache: true
                 sourceSize.width: parent.width
@@ -81,8 +80,7 @@ Item {
             Image {
                 id: logoImage
                 anchors.fill: parent
-                anchors.margins: 10
-                height: parent.height * 0.55
+                anchors.margins: 8
                 source: root.logoUrl
                 z: 2
                 sourceSize.width: parent.width
@@ -128,7 +126,7 @@ Item {
                 width: parent.width
                 text: root.displayName
                 color: Constants.textColorPrimary
-                font.pixelSize: Constants.textFontPixelSizeLower2
+                font.pixelSize: Constants.textFontPixelSizeDefault
                 font.weight: Font.Medium
                 elide: Text.ElideRight
                 maximumLineCount: 1
@@ -138,7 +136,7 @@ Item {
                 width: parent.width
                 text: root.category
                 color: Constants.textColorMuted
-                font.pixelSize: Constants.textFontPixelSizeLower3
+                font.pixelSize: Constants.textFontPixelSizeLower2
                 elide: Text.ElideRight
                 maximumLineCount: 1
             }

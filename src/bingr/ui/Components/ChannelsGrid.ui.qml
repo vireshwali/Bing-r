@@ -24,9 +24,9 @@ Item {
     property var gridController: ChannelsController
 
     // ── Grid Layout ──
-    property int cardWidth: 280
+    property int cardWidth: 240
     property int columns: 4
-    readonly property real gridSpacing: 10
+    readonly property real gridSpacing: 12
     readonly property int sideMargin: 24
 
     // ListModel {
@@ -421,8 +421,8 @@ Item {
         model: root.channelsModel
         //model: dummyChannelsModel // fallback for design-time
         cellWidth: root.cardWidth + root.gridSpacing
-        cellHeight: root.cardWidth + 75 + root.gridSpacing
-        cacheBuffer: 80
+        cellHeight: root.cardWidth + 60 + root.gridSpacing
+        cacheBuffer: 100
         clip: true
 
         //boundsBehavior: Flickable.StopAtBounds

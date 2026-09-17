@@ -13,7 +13,7 @@ import bingr.controllers 1.0
 
 Item {
     id: root
-    width: 1000
+    width: 1300
     height: 55 // same as height of the openleftnav button
 
     //the parent screen provides this to a
@@ -23,143 +23,142 @@ Item {
     property alias filterSubmitBtn: filterSubmitBtn
 
     // Hardcoded models for 4 combo boxes
-    ListModel {
-        id: categoryModel
+    // ListModel {
+    //     id: categoryModel
 
-        ListElement {
-            text: "All Categories"
-        }
-        ListElement {
-            text: "Business"
-        }
-        ListElement {
-            text: "Culture"
-        }
-        ListElement {
-            text: "Documentary"
-        }
-        ListElement {
-            text: "Education"
-        }
-        ListElement {
-            text: "Entertainment"
-        }
-        ListElement {
-            text: "Family"
-        }
-        ListElement {
-            text: "General"
-        }
-        ListElement {
-            text: "Kids"
-        }
-        ListElement {
-            text: "Lifestyle"
-        }
-        ListElement {
-            text: "Movies"
-        }
-        ListElement {
-            text: "Music"
-        }
-        ListElement {
-            text: "News"
-        }
-        ListElement {
-            text: "Religious"
-        }
-        ListElement {
-            text: "Sports"
-        }
-    }
+    //     ListElement {
+    //         text: "All Categories"
+    //     }
+    //     ListElement {
+    //         text: "Business"
+    //     }
+    //     ListElement {
+    //         text: "Culture"
+    //     }
+    //     ListElement {
+    //         text: "Documentary"
+    //     }
+    //     ListElement {
+    //         text: "Education"
+    //     }
+    //     ListElement {
+    //         text: "Entertainment"
+    //     }
+    //     ListElement {
+    //         text: "Family"
+    //     }
+    //     ListElement {
+    //         text: "General"
+    //     }
+    //     ListElement {
+    //         text: "Kids"
+    //     }
+    //     ListElement {
+    //         text: "Lifestyle"
+    //     }
+    //     ListElement {
+    //         text: "Movies"
+    //     }
+    //     ListElement {
+    //         text: "Music"
+    //     }
+    //     ListElement {
+    //         text: "News"
+    //     }
+    //     ListElement {
+    //         text: "Religious"
+    //     }
+    //     ListElement {
+    //         text: "Sports"
+    //     }
+    // }
 
-    ListModel {
-        id: countryModel
+    // ListModel {
+    //     id: countryModel
 
-        ListElement {
-            text: "All Countries"
-        }
-        ListElement {
-            text: "United States of America"
-        }
-        ListElement {
-            text: "United Kingdom of the great log country here"
-        }
-        ListElement {
-            text: "India"
-        }
-        ListElement {
-            text: "Canada"
-        }
-        ListElement {
-            text: "Australia"
-        }
-        ListElement {
-            text: "Germany"
-        }
-        ListElement {
-            text: "France"
-        }
-        ListElement {
-            text: "Japan"
-        }
-        ListElement {
-            text: "Brazil"
-        }
-    }
+    //     ListElement {
+    //         text: "All Countries"
+    //     }
+    //     ListElement {
+    //         text: "United States of America"
+    //     }
+    //     ListElement {
+    //         text: "United Kingdom of the great log country here"
+    //     }
+    //     ListElement {
+    //         text: "India"
+    //     }
+    //     ListElement {
+    //         text: "Canada"
+    //     }
+    //     ListElement {
+    //         text: "Australia"
+    //     }
+    //     ListElement {
+    //         text: "Germany"
+    //     }
+    //     ListElement {
+    //         text: "France"
+    //     }
+    //     ListElement {
+    //         text: "Japan"
+    //     }
+    //     ListElement {
+    //         text: "Brazil"
+    //     }
+    // }
 
-    ListModel {
-        id: cityModel
+    // ListModel {
+    //     id: cityModel
 
-        ListElement {
-            text: "All Cities"
-        }
-        ListElement {
-            text: "Saganisoninmonzenzenkōjiyamachō"
-        }
-        ListElement {
-            text: "Pekwachnamaykoskwaskwaypinwanik asdasd"
-        }
-        ListElement {
-            text: "Äteritsiputeritsipuolilautatsijänkä asdasd"
-        }
-        ListElement {
-            text: "Azpilikuetagaraikosaroiarenberekolarrea    asdad"
-        }
-        ListElement {
-            text: "Sydney"
-        }
-        ListElement {
-            text: "Berlin"
-        }
-        ListElement {
-            text: "Paris"
-        }
-        ListElement {
-            text: "Tokyo"
-        }
-        ListElement {
-            text: "São Paulo"
-        }
-    }
+    //     ListElement {
+    //         text: "All Cities"
+    //     }
+    //     ListElement {
+    //         text: "Saganisoninmonzenzenkōjiyamachō"
+    //     }
+    //     ListElement {
+    //         text: "Pekwachnamaykoskwaskwaypinwanik asdasd"
+    //     }
+    //     ListElement {
+    //         text: "Äteritsiputeritsipuolilautatsijänkä asdasd"
+    //     }
+    //     ListElement {
+    //         text: "Azpilikuetagaraikosaroiarenberekolarrea    asdad"
+    //     }
+    //     ListElement {
+    //         text: "Sydney"
+    //     }
+    //     ListElement {
+    //         text: "Berlin"
+    //     }
+    //     ListElement {
+    //         text: "Paris"
+    //     }
+    //     ListElement {
+    //         text: "Tokyo"
+    //     }
+    //     ListElement {
+    //         text: "São Paulo"
+    //     }
+    // }
 
-    ListModel {
-        id: qualityModel
+    // ListModel {
+    //     id: qualityModel
 
-        ListElement {
-            text: "All Qualities"
-        }
-        ListElement {
-            text: "4K"
-        }
-        ListElement {
-            text: "HD"
-        }
-        ListElement {
-            text: "SD"
-        }
-    }
-
+    //     ListElement {
+    //         text: "All Qualities"
+    //     }
+    //     ListElement {
+    //         text: "4K"
+    //     }
+    //     ListElement {
+    //         text: "HD"
+    //     }
+    //     ListElement {
+    //         text: "SD"
+    //     }
+    // }
     Rectangle {
         id: mainRect
         color: Constants.backgroundColor
@@ -169,7 +168,7 @@ Item {
         Row {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            anchors.right: channelsSearch.left
+            anchors.right: addChannelsBtn.left
             anchors.rightMargin: 8
             spacing: 14
 
@@ -226,14 +225,6 @@ Item {
                 }
             }
 
-            // City
-            // TopNavComboBox {
-            //     id: cityCombo
-            //     width: 200
-            //     model: cityModel
-            //     anchors.verticalCenter: parent.verticalCenter
-            // }
-
             // Quality
             TopNavComboBox {
                 id: qualityCombo
@@ -267,6 +258,17 @@ Item {
                     }
                 }
             }
+        }
+        IconButtonWithText {
+            id: addChannelsBtn
+            height: 36
+            anchors.right: channelsSearch.left
+            anchors.rightMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            btnImageSize: 28
+            btnRadius: 18
+            btnShadowBlur: 4
+            btnShadowSpread: 4
         }
 
         // Right section: search field

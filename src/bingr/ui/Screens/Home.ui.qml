@@ -147,7 +147,7 @@ Item {
                     HorizontalPager {
                         id: continueWatchingChannels
                         width: parent.width
-                        height: 312
+                        height: 280
                         title: qsTr("Continue Watching")
                         channelModel: homeController.continueWatchingChannelsViewModel
                         visible: homeController.continueWatchingChannelsViewModel !== null
@@ -157,7 +157,7 @@ Item {
                     HorizontalPager {
                         id: topCategory1
                         width: parent.width
-                        height: 300
+                        height: 280
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel1SectionTitle)
                         channelModel: homeController.pagerViewModel1
@@ -168,7 +168,7 @@ Item {
                     HorizontalPager {
                         id: topCategory2
                         width: parent.width
-                        height: 300
+                        height: 280
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel2SectionTitle)
                         channelModel: homeController.pagerViewModel2
@@ -179,7 +179,7 @@ Item {
                     HorizontalPager {
                         id: topCategory3
                         width: parent.width
-                        height: 300
+                        height: 280
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel3SectionTitle)
                         channelModel: homeController.pagerViewModel3
@@ -190,7 +190,7 @@ Item {
                     HorizontalPager {
                         id: topCategory4
                         width: parent.width
-                        height: 300
+                        height: 280
                         title: qsTr("Top in %1").arg(
                                    homeController.pagerViewModel4SectionTitle)
                         channelModel: homeController.pagerViewModel4
@@ -201,7 +201,7 @@ Item {
                     HorizontalPager {
                         id: recentlyAddedChannels
                         width: parent.width
-                        height: 300
+                        height: 280
                         title: qsTr("Recently Added")
                         channelModel: homeController.recentlyAddedChannelsViewModel
                         visible: homeController.recentlyAddedChannelsViewModel !== null

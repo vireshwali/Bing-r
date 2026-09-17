@@ -182,6 +182,7 @@ jobs:
             git push
           fi
 
+  # TODO: Enable abck when the BaseAPP Qt 6.11 issues are fixed.
   # generate-flatpak-deps:
   #   name: Generate Pypi Flatpak Dependencies
   #   needs: [pre-validations, create-release-branch]

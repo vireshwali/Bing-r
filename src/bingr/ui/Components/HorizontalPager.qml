@@ -12,7 +12,7 @@ import ui.Components
 Item {
     id: root
     width: 800
-    height: 300
+    height: 290
 
     property string title: qsTr("Channels")
     property var channelModel: null
@@ -31,7 +31,7 @@ Item {
         Item {
             id: headerSection
             height: (sectionTitle.height
-                     > seeMoreBtn.height ? sectionTitle.height : seeMoreBtn.height) + 12
+                     > seeMoreBtn.height ? sectionTitle.height : seeMoreBtn.height) + 10
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.right: parent.right
@@ -50,7 +50,7 @@ Item {
             //defer to release 2
             IconButtonWithText {
                 id: seeMoreBtn
-                height: 32
+                height: 30
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.rightMargin: 14
@@ -67,7 +67,7 @@ Item {
 
         CarouselArrow {
             id: prevArrow
-            width: 32
+            width: 28
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: 4
@@ -78,7 +78,7 @@ Item {
 
         CarouselArrow {
             id: nextArrow
-            width: 32
+            width: 28
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             anchors.rightMargin: 4

@@ -233,7 +233,7 @@ Item {
                     width: parent.width
                     color: Constants.textColorMuted
                     text: "[" + qsTr(root.altNames) + "]"
-                    font.pixelSize: 12
+                    font.pixelSize: Constants.textFontPixelSizeLower2
                     wrapMode: Text.WordWrap
                     font.weight: Font.Medium
                     elide: Text.ElideRight
@@ -248,21 +248,21 @@ Item {
                 Text {
                     text: root.category
                     color: Constants.textColorMuted
-                    font.pixelSize: 12
+                    font.pixelSize: Constants.textFontPixelSizeLower2
                     verticalAlignment: Text.AlignVCenter
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
                     text: qsTr("\u002D")
                     color: Constants.textColorMuted
-                    font.pixelSize: 11
+                    font.pixelSize: Constants.textFontPixelSizeLower3
                     verticalAlignment: Text.AlignVCenter
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
                     text: root.feedCount + " Feeds"
                     color: Constants.textColorMuted
-                    font.pixelSize: 12
+                    font.pixelSize: Constants.textFontPixelSizeLower2
                     verticalAlignment: Text.AlignVCenter
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -273,7 +273,7 @@ Item {
                 width: parent.width
                 text: qsTr(root.additionalTags)
                 color: Constants.textColorMuted
-                font.pixelSize: 12
+                font.pixelSize: Constants.textFontPixelSizeLower2
                 elide: Text.ElideRight
                 visible: root.additionalTags !== ""
             }
@@ -289,9 +289,11 @@ Item {
                     height: 20
                     anchors.verticalCenter: parent.verticalCenter
                     source: "../images/user-sound.svg"
-                    sourceSize.height: 40
-                    sourceSize.width: 40
-                    cache: false
+                    mipmap: true
+                    asynchronous: true
+                    sourceSize.height: 20
+                    sourceSize.width: 20
+                    cache: true
                     fillMode: Image.PreserveAspectFit
                 }
 
@@ -301,7 +303,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.languages
                     color: Constants.textColorMuted
-                    font.pixelSize: 12
+                    font.pixelSize: Constants.textFontPixelSizeLower2
                     wrapMode: Text.WordWrap
                     elide: Text.ElideRight
                     maximumLineCount: 1
