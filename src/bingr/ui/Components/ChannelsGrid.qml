@@ -1,15 +1,8 @@
 
-/*
-This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
-It is supposed to be strictly declarative and only uses a subset of QML. If you edit
-this file manually, you might introduce QML code that is not supported by Qt Design Studio.
-Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on .ui.qml files.
-*/
 import QtQuick
 import QtQuick.Controls
 import ui
 import ui.Components
-import QtQuick.Studio.DesignEffects
 import bingr.controllers
 
 Item {
@@ -17,7 +10,7 @@ Item {
     width: 900
     height: 700
 
-    property var gridController: null //instance of ChannelsController
+    property var gridController: null
 
     // ── Grid Layout ──
     property int cardWidth: 240
@@ -98,21 +91,4 @@ Item {
         running: true
         visible: running
     }
-
-    // ── Error overlay ──────────────────────────────────────────────────
-    // Rectangle {
-    //     id: errorOverlay
-    //     anchors.fill: parent
-    //     visible: ChannelsController.error !== ""
-    //     color: "#1a1a1a"
-
-    //     Text {
-    //         anchors.centerIn: parent
-    //         text: "Error: " + ChannelsController.error
-    //         color: Constants.textColorPrimary
-    //         font.pixelSize: 16
-    //         wrapMode: Text.WordWrap
-    //         horizontalAlignment: Text.AlignHCenter
-    //     }
-    // }
 }

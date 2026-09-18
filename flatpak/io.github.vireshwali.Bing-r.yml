@@ -40,6 +40,7 @@ modules:
 - name: libplacebo
   buildsystem: meson
   config-opts:
+  - -Dlibdir=/app/lib
   - -Dvulkan=enabled
   - -Dshaderc=enabled
   cleanup:
@@ -183,6 +184,7 @@ modules:
   buildsystem: meson
   config-opts:
   - -Dlibmpv=true
+  - -Dlibdir=/app/lib
   - -Dcplayer=false
   - -Dwerror=false
   - -Dbuild-date=false
