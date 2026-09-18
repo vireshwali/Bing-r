@@ -26,7 +26,6 @@ class EventBus(QObject):
     """
 
     reloadChannelsData = Signal(object)
-    toggleFavoriteRequested = Signal(int)
     favoriteToggled = Signal(int, bool)
     heroChannelsReloadRequested = Signal()
     reachabilityCheckRequested = Signal(object)

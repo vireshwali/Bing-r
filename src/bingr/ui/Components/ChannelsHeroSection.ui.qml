@@ -21,155 +21,7 @@ Item {
     property int heroIndex: 0
     property bool heroHovered: false
 
-    property var heroModel: null
-
-    ListModel {
-        id: dummyHeroModel
-
-        ListElement {
-            channelId: "AngelTV.in"
-            displayName: "Angel TV"
-            logoUrl: "https://i.imgur.com/qKLEGU7.png"
-            countryCode: "IN"
-            countryName: "India"
-            category: "Religious"
-            quality: "SD"
-            resolution: "1080p"
-            feedCount: 15
-            isFavorite: true
-            isLive: true
-            websiteUrl: "https://www.angeltv.org"
-            languages: "English, Tamil, Chinese"
-            altNames: "asd, qweqwe, werwer, dfgdfg"
-            additionalTags: "YouTube"
-        }
-        ListElement {
-            channelId: "BloombergTV.us"
-            displayName: "Bloomberg TV"
-            logoUrl: "https://i.imgur.com/OuogLHx.png"
-            countryCode: "US"
-            countryName: "United States"
-            category: "Business"
-            quality: "4K"
-            feedCount: 12
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://www.bloomberg.com/live/us/btv"
-            languages: "English"
-        }
-        ListElement {
-            channelId: "ThePetCollective.us"
-            displayName: "The Pet Collective"
-            logoUrl: "https://i.imgur.com/yH7n2dF.png"
-            countryCode: "US"
-            countryName: "United States"
-            category: "Family"
-            quality: "SD"
-            feedCount: 12
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://www.thepetcollective.com/streaming/"
-            languages: "English, Portuguese, French"
-        }
-        ListElement {
-            channelId: "MovieSphere.us"
-            displayName: "MovieSphere"
-            logoUrl: "https://i.imgur.com/h1ejU90.png"
-            countryCode: "US"
-            countryName: "United States"
-            category: "Movies"
-            quality: "HD"
-            feedCount: 9
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://lionsgatechannels.com/movie-sphere"
-            languages: "English, Portuguese, German"
-        }
-        ListElement {
-            channelId: "ABCTV.au"
-            displayName: "ABC TV"
-            logoUrl: "https://i.imgur.com/DPVQSjM.png"
-            countryCode: "AU"
-            countryName: "Australia"
-            category: "General"
-            quality: "HD"
-            feedCount: 8
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://iview.abc.net.au/channel/abc1"
-            languages: "English"
-        }
-        ListElement {
-            channelId: "FIFAPlus.uk"
-            displayName: "FIFA+"
-            logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/FIFA%2B_(2025).svg/960px-FIFA%2B_(2025).svg.png"
-            countryCode: "UK"
-            countryName: "United Kingdom"
-            category: "Sports"
-            quality: "HD"
-            feedCount: 8
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://www.plus.fifa.com/"
-            languages: "English, French, German"
-        }
-        ListElement {
-            channelId: "NatureTime.ca"
-            displayName: "NatureTime"
-            logoUrl: "https://i.imgur.com/72JmyjM.png"
-            countryCode: "CA"
-            countryName: "Canada"
-            category: "Documentary"
-            quality: "HD"
-            feedCount: 7
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://naturetimetv.com/"
-            languages: "English, Portuguese, Spanish"
-        }
-        ListElement {
-            channelId: "10Bold.au"
-            displayName: "10 Bold"
-            logoUrl: "https://i.imgur.com/2xglh33.png"
-            countryCode: "AU"
-            countryName: "Australia"
-            category: "Lifestyle"
-            quality: "SD"
-            feedCount: 6
-            isFavorite: false
-            isLive: true
-            websiteUrl: "http://tenplay.com.au/"
-            languages: "English"
-        }
-        ListElement {
-            channelId: "9Gem.au"
-            displayName: "9Gem"
-            logoUrl: "https://i.imgur.com/cwLzqaw.png"
-            countryCode: "AU"
-            countryName: "Australia"
-            category: "Entertainment"
-            quality: "SD"
-            feedCount: 6
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://www.9now.com.au/"
-            languages: "English"
-        }
-        ListElement {
-            channelId: "9Go.au"
-            displayName: "9Go!"
-            logoUrl: "https://i.imgur.com/RLijQI8.png"
-            countryCode: "AU"
-            countryName: "Australia"
-            category: "Entertainment"
-            quality: "SD"
-            feedCount: 6
-            isFavorite: false
-            isLive: true
-            websiteUrl: "https://www.9now.com.au/"
-            languages: "English"
-        }
-    }
+    property var heroController: null //instance of ChannelsController
 
     Rectangle {
         id: heroSection
@@ -234,9 +86,7 @@ Item {
             spacing: 8
 
             Repeater {
-                model: root.heroModel
-
-                //model: dummyHeroModel
+                model: root.heroController.channelsHeroViewModel
                 delegate: Rectangle {
                     id: dotRect
                     height: 8
@@ -280,9 +130,7 @@ Item {
         // Hero content
         Repeater {
             id: heroContent
-            model: root.heroModel
-
-            //model: dummyHeroModel
+            model: root.heroController.channelsHeroViewModel
             delegate: Item {
                 width: heroSection.width
                 height: heroSection.height
@@ -440,7 +288,7 @@ Item {
                                 Connections {
                                     target: watchNowBtn.buttonMouseArea
                                     function onClicked() {
-                                        ChannelsController.channelIdPlayRequested(
+                                        root.heroController.channelIdPlayRequested(
                                                     model.channelId)
                                     }
                                 }

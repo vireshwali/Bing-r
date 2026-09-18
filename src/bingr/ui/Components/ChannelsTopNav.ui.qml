@@ -19,146 +19,10 @@ Item {
     //the parent screen provides this to a
     //ccomodate the left nav drawer Button on ui
     property int leftMargin: 8
+    property var channelsController: null //instance of ChannelsController
 
     property alias filterSubmitBtn: filterSubmitBtn
 
-    // Hardcoded models for 4 combo boxes
-    // ListModel {
-    //     id: categoryModel
-
-    //     ListElement {
-    //         text: "All Categories"
-    //     }
-    //     ListElement {
-    //         text: "Business"
-    //     }
-    //     ListElement {
-    //         text: "Culture"
-    //     }
-    //     ListElement {
-    //         text: "Documentary"
-    //     }
-    //     ListElement {
-    //         text: "Education"
-    //     }
-    //     ListElement {
-    //         text: "Entertainment"
-    //     }
-    //     ListElement {
-    //         text: "Family"
-    //     }
-    //     ListElement {
-    //         text: "General"
-    //     }
-    //     ListElement {
-    //         text: "Kids"
-    //     }
-    //     ListElement {
-    //         text: "Lifestyle"
-    //     }
-    //     ListElement {
-    //         text: "Movies"
-    //     }
-    //     ListElement {
-    //         text: "Music"
-    //     }
-    //     ListElement {
-    //         text: "News"
-    //     }
-    //     ListElement {
-    //         text: "Religious"
-    //     }
-    //     ListElement {
-    //         text: "Sports"
-    //     }
-    // }
-
-    // ListModel {
-    //     id: countryModel
-
-    //     ListElement {
-    //         text: "All Countries"
-    //     }
-    //     ListElement {
-    //         text: "United States of America"
-    //     }
-    //     ListElement {
-    //         text: "United Kingdom of the great log country here"
-    //     }
-    //     ListElement {
-    //         text: "India"
-    //     }
-    //     ListElement {
-    //         text: "Canada"
-    //     }
-    //     ListElement {
-    //         text: "Australia"
-    //     }
-    //     ListElement {
-    //         text: "Germany"
-    //     }
-    //     ListElement {
-    //         text: "France"
-    //     }
-    //     ListElement {
-    //         text: "Japan"
-    //     }
-    //     ListElement {
-    //         text: "Brazil"
-    //     }
-    // }
-
-    // ListModel {
-    //     id: cityModel
-
-    //     ListElement {
-    //         text: "All Cities"
-    //     }
-    //     ListElement {
-    //         text: "Saganisoninmonzenzenkōjiyamachō"
-    //     }
-    //     ListElement {
-    //         text: "Pekwachnamaykoskwaskwaypinwanik asdasd"
-    //     }
-    //     ListElement {
-    //         text: "Äteritsiputeritsipuolilautatsijänkä asdasd"
-    //     }
-    //     ListElement {
-    //         text: "Azpilikuetagaraikosaroiarenberekolarrea    asdad"
-    //     }
-    //     ListElement {
-    //         text: "Sydney"
-    //     }
-    //     ListElement {
-    //         text: "Berlin"
-    //     }
-    //     ListElement {
-    //         text: "Paris"
-    //     }
-    //     ListElement {
-    //         text: "Tokyo"
-    //     }
-    //     ListElement {
-    //         text: "São Paulo"
-    //     }
-    // }
-
-    // ListModel {
-    //     id: qualityModel
-
-    //     ListElement {
-    //         text: "All Qualities"
-    //     }
-    //     ListElement {
-    //         text: "4K"
-    //     }
-    //     ListElement {
-    //         text: "HD"
-    //     }
-    //     ListElement {
-    //         text: "SD"
-    //     }
-    // }
     Rectangle {
         id: mainRect
         color: Constants.backgroundColor
@@ -192,16 +56,15 @@ Item {
             TopNavComboBox {
                 id: catCombo
                 width: 130
-                //model: categoryModel
-                model: ChannelsController.categoryFilterModel
-                comboBox.currentIndex: ChannelsController.categoryFilterModel.currentIndex
+                model: root.channelsController.categoryFilterModel
+                comboBox.currentIndex: root.channelsController.categoryFilterModel.currentIndex
                 anchors.verticalCenter: parent.verticalCenter
 
                 Connections {
                     target: catCombo.comboBox
                     function onCurrentIndexChanged() {
                         console.log("catCombo curr index: " + catCombo.comboBox.currentIndex)
-                        ChannelsController.categoryFilterModel.currentIndex
+                        root.channelsController.categoryFilterModel.currentIndex
                                 = catCombo.comboBox.currentIndex
                     }
                 }
@@ -211,15 +74,14 @@ Item {
             TopNavComboBox {
                 id: countryCombo
                 width: 150
-                //model: countryModel
-                model: ChannelsController.countryFilterModel
-                comboBox.currentIndex: ChannelsController.countryFilterModel.currentIndex
+                model: root.channelsController.countryFilterModel
+                comboBox.currentIndex: root.channelsController.countryFilterModel.currentIndex
                 anchors.verticalCenter: parent.verticalCenter
 
                 Connections {
                     target: qualityCombo.comboBox
                     function onCurrentIndexChanged() {
-                        ChannelsController.qualityFilterModel.currentIndex
+                        root.channelsController.qualityFilterModel.currentIndex
                                 = qualityCombo.comboBox.currentIndex
                     }
                 }
@@ -229,15 +91,14 @@ Item {
             TopNavComboBox {
                 id: qualityCombo
                 width: 100
-                //model: qualityModel
-                model: ChannelsController.qualityFilterModel
-                comboBox.currentIndex: ChannelsController.qualityFilterModel.currentIndex
+                model: root.channelsController.qualityFilterModel
+                comboBox.currentIndex: root.channelsController.qualityFilterModel.currentIndex
                 anchors.verticalCenter: parent.verticalCenter
 
                 Connections {
                     target: countryCombo.comboBox
                     function onCurrentIndexChanged() {
-                        ChannelsController.countryFilterModel.currentIndex
+                        root.channelsController.countryFilterModel.currentIndex
                                 = countryCombo.comboBox.currentIndex
                     }
                 }
@@ -254,7 +115,7 @@ Item {
                 Connections {
                     target: filterSubmitBtn.buttonMouseArea
                     function onClicked() {
-                        ChannelsController.applyFilters()
+                        root.channelsController.applyFilters()
                     }
                 }
             }
@@ -284,7 +145,7 @@ Item {
             Connections {
                 target: channelsSearch.textInput
                 function onAccepted() {
-                    ChannelsController.applyFiltersWithSearch(
+                    root.channelsController.applyFiltersWithSearch(
                                 channelsSearch.textInput.text)
                 }
             }
@@ -292,7 +153,7 @@ Item {
             Connections {
                 target: channelsSearch.buttonMouseArea
                 function onClicked() {
-                    ChannelsController.applyFiltersWithSearch(
+                    root.channelsController.applyFiltersWithSearch(
                                 channelsSearch.textInput.text)
                 }
             }

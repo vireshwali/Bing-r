@@ -30,7 +30,8 @@ QML_IMPORT_NAME = "bingr.models"
 QML_IMPORT_MAJOR_VERSION = 1
 
 _INVALID_INDEX = QModelIndex()
-PAGE_SIZE = 100
+# Check and map/match to cacheBUffer in channels grid ml
+PAGE_SIZE = 200
 FIRST_PAGE_SIZE = PAGE_SIZE + 50
 
 logger = logging.getLogger(__name__)

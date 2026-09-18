@@ -1,5 +1,6 @@
 """Unit tests for channelsController."""
 
+import asyncio
 import gc
 
 import pytest
@@ -67,6 +68,11 @@ def makeController():
     return ChannelsController()
 
 
+async def pumpLoops(n: int = 200) -> None:
+    for _ in range(n):
+        await asyncio.sleep(0)
+
+
 class TestInit:
     def testServiceInjectedIntoAllViewModels(self):
         ctrl = makeController()
@@ -118,14 +124,17 @@ class TestPlayBridge:
 
 
 class TestFavoriteBridge:
-    def testToggleFavoriteEmitsBusRequest(self):
+    async def testToggleFavoriteCallsServiceAndEmitsToggled(self, mocker):
         ctrl = makeController()
+        ctrl._service.toggleFavorite = mocker.AsyncMock(return_value=True)
         seen = []
-        appEventBus.toggleFavoriteRequested.connect(seen.append)
+        appEventBus.favoriteToggled.connect(lambda cid, fav: seen.append((cid, fav)))
 
         ctrl.toggleFavorite(5)
+        await pumpLoops()
 
-        assert seen == [5]
+        ctrl._service.toggleFavorite.assert_awaited_once_with(5)
+        assert seen == [(5, True)]
 
     def testOnFavoriteToggledUpdatesGridRow(self):
         ctrl = makeController()

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import ui
-import "../Components"
+import ui.Components
 import QtQuick.Studio.DesignEffects
 import bingr.controllers
 
@@ -13,9 +13,18 @@ Item {
     property int inputMode: 0
     property int selectedFileCount: 0
     property bool importing: false
+    property bool isProcessingActive: false
 
     readonly property color filesDropAreaRectColor: "#181818"
     readonly property color filesDropAreaRectBorderColor: "#323232"
+
+    Component.onCompleted: {
+        console.log("AddChannels onCompleted called.")
+    }
+
+    Component.onDestruction: {
+        console.log("AddChannels onDestruction called.")
+    }
 
     AddNewSourcesController {
         id: addNewSourcesController
@@ -131,6 +140,7 @@ Item {
                                 }
                             }
                             //root.selectedFileCount = count
+                            root.isProcessingActive = true
                             addNewSourcesController.processM3UFiles(drop.urls)
                             if (count === 0)
                                 drop.accepted = false
@@ -176,7 +186,7 @@ Item {
                     id: urlsInputColumn
                     width: parent.width * 0.8
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 11
+                    spacing: 12
 
                     Text {
                         id: urlsInptText
@@ -186,7 +196,7 @@ Item {
                         font.pixelSize: 14
                     }
 
-                    CustomTextInputFieldWithIcon {
+                    CustomTextInputField {
                         id: customTextInput1
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -196,7 +206,7 @@ Item {
                         shadowSpreadSize: 1
                     }
 
-                    CustomTextInputFieldWithIcon {
+                    CustomTextInputField {
                         id: customTextInput2
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -205,7 +215,7 @@ Item {
                         shadowBlur: 1
                         shadowSpreadSize: 1
                     }
-                    CustomTextInputFieldWithIcon {
+                    CustomTextInputField {
                         id: customTextInput3
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -214,7 +224,7 @@ Item {
                         shadowBlur: 1
                         shadowSpreadSize: 1
                     }
-                    CustomTextInputFieldWithIcon {
+                    CustomTextInputField {
                         id: customTextInput4
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -260,6 +270,7 @@ Item {
                             }
 
                             if (urlsArray.length > 0) {
+                                root.isProcessingActive = true
                                 addNewSourcesController.processM3UFiles(
                                             urlsArray)
                             }
@@ -271,7 +282,7 @@ Item {
             Item {
                 id: resultsSection
                 width: parent.width
-                visible: true
+                visible: root.isProcessingActive
                 anchors.top: columnView.bottom
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -289,7 +300,7 @@ Item {
                     id: resultsGridView
                     width: parent.width * 0.8
                     //height: 120
-                    visible: true
+                    visible: root.isProcessingActive
                     anchors.top: separatorRect.bottom
                     anchors.topMargin: columnView.spacing
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -353,8 +364,32 @@ Item {
                         }
                     }
                     delegate: Item {
+                        id: delegateRoot
                         width: resultsGridView.width
                         height: resultsGridView.cellHeight
+
+                        property int dotIndex: 0
+
+                        Timer {
+                            id: processingTimer
+                            running: model.status === "Processing"
+                            interval: 400
+                            repeat: true
+                            triggeredOnStart: true
+                            onTriggered: {
+                                console.log("triggered - delegateRoot.dotIndex = "
+                                            + delegateRoot.dotIndex)
+                                delegateRoot.dotIndex = (delegateRoot.dotIndex + 1) % 4
+                            }
+                            onRunningChanged: {
+                                if (running)
+                                    delegateRoot.dotIndex = 1
+                                else
+                                    delegateRoot.dotIndex = 0
+                            }
+                        }
+
+                        readonly property var dots: ["", "..", "....", "....."]
 
                         Row {
                             anchors.fill: parent
@@ -405,7 +440,7 @@ Item {
                                 Text {
                                     anchors.centerIn: parent
                                     anchors.leftMargin: 8
-                                    text: status
+                                    text: model.status + delegateRoot.dots[delegateRoot.dotIndex]
                                     font.pointSize: 10
                                     color: Constants.textColorPrimary
                                     anchors.verticalCenter: parent.verticalCenter

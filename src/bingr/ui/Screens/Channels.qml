@@ -9,7 +9,7 @@ Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on
 import QtQuick
 import QtQuick.Controls
 import ui
-import "../Components"
+import ui.Components
 import bingr.controllers
 
 Item {
@@ -17,6 +17,19 @@ Item {
     width: 800
     height: 800
     property int topNavLeftMargin: 8
+    property alias channelsController: channelsController
+
+    Component.onCompleted: {
+        console.log("Channels onCompleted called.")
+    }
+
+    Component.onDestruction: {
+        console.log("Channels onDestruction called.")
+    }
+
+    ChannelsController {
+        id: channelsController
+    }
 
     Rectangle {
         id: rectangle
@@ -30,16 +43,17 @@ Item {
             //anchors.topMargin: 10
             anchors.leftMargin: root.topNavLeftMargin
             anchors.right: parent.right
+            channelsController: channelsController
         }
 
         ChannelsHeroSection {
             id: heroSection
-            height: parent.height * 0.26
+            height: parent.height * 0.22
             anchors.left: parent.left
             anchors.top: channelsTopNav.bottom
             anchors.topMargin: 5
             anchors.right: parent.right
-            heroModel: ChannelsController.channelsHeroViewModel
+            heroController: channelsController
         }
 
         Rectangle {
@@ -62,7 +76,7 @@ Item {
             anchors.topMargin: 8
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            channelsModel: ChannelsController.channelsViewModel
+            gridController: channelsController
         }
     }
 }

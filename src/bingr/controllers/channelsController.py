@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Property, QObject, Signal, Slot
-from PySide6.QtQml import QmlElement, QmlSingleton
+from PySide6.QtQml import QmlElement
 
 import bingr.ui_models.categoryFilterViewModel as _catVm
 import bingr.ui_models.channelsGridViewModel as _gridVm
@@ -34,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 
 @QmlElement
-@QmlSingleton
 class ChannelsController(QObject):
     """Controller for the channels screen.
 
@@ -124,13 +124,13 @@ class ChannelsController(QObject):
 
     @Slot(int)
     def toggleFavorite(self, channelId: int) -> None:
-        """Fire-and-forget: emit the toggle request on the event bus.
+        """Toggle favourite via the service, update own grid, notify other screens."""
+        asyncio.ensure_future(self._doToggle(channelId))  # noqa: RUF006
 
-        FavoritesController persists the change and emits favoriteToggled,
-        which updates the grid row in place (no pagination reset).
-        """
-        appEventBus.toggleFavoriteRequested.emit(channelId)
-        logger.info("Favorite toggle requested for channel %s", channelId)
+    async def _doToggle(self, channelId: int) -> None:
+        isFavorite = await self._service.toggleFavorite(channelId)
+        appEventBus.favoriteToggled.emit(channelId, isFavorite)
+        logger.info("Channel %s favorite state is now: %s", channelId, isFavorite)
 
     @Slot(int, bool)
     def _onFavoriteToggled(self, channelId: int, isFavorite: bool) -> None:

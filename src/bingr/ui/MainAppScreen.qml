@@ -33,7 +33,7 @@ Item {
         antialiasing: true
 
         Connections {
-            target: ChannelsController
+            target: channelsScreenLoader.item ? channelsScreenLoader.item.channelsController : null
             function onChannelIdToPlay(channelId) {
                 console.log("onChannelIdToPlay " + channelId)
                 root.pendingChannelId = channelId
@@ -42,9 +42,19 @@ Item {
         }
 
         Connections {
-            target: homeScreenLoader.item.homeController
+            target: homeScreenLoader.item ? homeScreenLoader.item.homeController : null
             function onChannelIdToPlay(channelId) {
                 console.log("onChannelIdToPlay from home " + channelId)
+                root.pendingChannelId = channelId
+                root.showPlayer = true
+            }
+        }
+
+        Connections {
+            target: favouritesScreenLoader.item
+                      ? favouritesScreenLoader.item.favoritesController
+                      : null
+            function onChannelIdToPlay(channelId) {
                 root.pendingChannelId = channelId
                 root.showPlayer = true
             }
@@ -71,7 +81,10 @@ Item {
             function onClicked() {
                 console.log("Home  Button clciked.")
                 //unset other screen laoders
+                channelsScreenLoader.sourceComponent = null
+                favouritesScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
+                addChannelsScreenLoader.sourceComponent = null
 
                 //set home screen
                 var homeScreenComp = Qt.createComponent("ui.Screens", "Home")
@@ -93,10 +106,23 @@ Item {
             function onClicked() {
                 //unset other screen laoders
                 homeScreenLoader.sourceComponent = null
+                channelsScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
+                addChannelsScreenLoader.sourceComponent = null
 
                 //set screen
-                mainStackContainer.currentIndex = 1
+                var favouritesScreenComp = Qt.createComponent("ui.Screens",
+                                                              "Favourites")
+                if (favouritesScreenComp.status === Component.Ready) {
+                    favouritesScreenLoader.sourceComponent = favouritesScreenComp
+                    favouritesScreenLoader.item.topNavLeftMargin
+                            = openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin
+                    mainStackContainer.currentIndex = 1
+                } else {
+                    console.error(
+                                "Error loading favouritesScreenComp component:",
+                                favouritesScreenComp.errorString())
+                }
             }
         }
 
@@ -111,10 +137,23 @@ Item {
             function onClicked() {
                 //unset other screen laoders
                 homeScreenLoader.sourceComponent = null
+                favouritesScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
+                addChannelsScreenLoader.sourceComponent = null
 
                 //set screen
-                mainStackContainer.currentIndex = 2
+                var channelsScreenComp = Qt.createComponent("ui.Screens",
+                                                            "Channels")
+                if (channelsScreenComp.status === Component.Ready) {
+                    channelsScreenLoader.sourceComponent = channelsScreenComp
+                    channelsScreenLoader.item.topNavLeftMargin = openLeftNavBtn.width
+                            + openLeftNavBtn.anchors.leftMargin
+                    mainStackContainer.currentIndex = 2
+                } else {
+                    console.error(
+                                "Error loading channelsScreenComp component:",
+                                channelsScreenComp.errorString())
+                }
             }
         }
 
@@ -124,9 +163,13 @@ Item {
             function onClicked() {
                 //unset other screen laoders
                 homeScreenLoader.sourceComponent = null
+                channelsScreenLoader.sourceComponent = null
+                favouritesScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
 
                 //set screen
+                addChannelsScreenLoader.sourceComponent = Qt.createComponent(
+                            "ui.Screens", "AddChannels")
                 mainStackContainer.currentIndex = 3
             }
         }
@@ -136,9 +179,13 @@ Item {
             function onClicked() {
                 //unset other screen laoders
                 homeScreenLoader.sourceComponent = null
+                channelsScreenLoader.sourceComponent = null
+                favouritesScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
 
                 //set screen
+                addChannelsScreenLoader.sourceComponent = Qt.createComponent(
+                            "ui.Screens", "AddChannels")
                 mainStackContainer.currentIndex = 3
             }
         }
@@ -146,15 +193,16 @@ Item {
         Connections {
             target: leftNav.settingsMenuButton.buttonMouseArea
             function onClicked() {
-                console.log("Settings clciked.")
                 //unset other screen laoders
                 homeScreenLoader.sourceComponent = null
+                channelsScreenLoader.sourceComponent = null
+                favouritesScreenLoader.sourceComponent = null
+                addChannelsScreenLoader.sourceComponent = null
 
                 //set screen
                 settingsScreenLoader.sourceComponent = Qt.createComponent(
                             "ui.Screens", "Settings")
                 mainStackContainer.currentIndex = 4
-                console.log("Settings clciked after.")
             }
         }
 
@@ -214,12 +262,11 @@ Item {
                 }
             }
 
-            Favourites {
-                id: favouritesScreen
+            Loader {
+                id: favouritesScreenLoader
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin
             }
 
             // Playlists {
@@ -228,18 +275,27 @@ Item {
             //     Layout.fillHeight: true
             //     Layout.fillWidth: true
             //}
-            Channels {
-                id: channelsScreen
+            Loader {
+                id: channelsScreenLoader
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin
+                //topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin
             }
-            AddChannels {
-                id: addChannelsScreen
+
+            // Channels {
+            //     id: channelsScreen
+            //     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            //     Layout.fillHeight: true
+            //     Layout.fillWidth: true
+            //     topNavLeftMargin: openLeftNavBtn.width + openLeftNavBtn.anchors.leftMargin
+            // }
+            Loader {
+                id: addChannelsScreenLoader
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                sourceComponent: null
             }
 
             Loader {

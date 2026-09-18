@@ -36,6 +36,8 @@ Item {
     property string languages: "English, Portuguese, French, Danish, Pakistani, African, French, Hindu, Gujarati, punjabi, kashmiriCanadian"
     property string websiteUrl: "tst"
 
+    property var gridController: null //instance of ChannelsController
+
     // Card body
     Rectangle {
         id: cardRect
@@ -114,23 +116,22 @@ Item {
                     width: 200
                     height: width * 9 / 16
                 }
-                cache: false
+                cache: true
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
-                mipmap: true
                 transformOrigin: Item.Center
                 visible: status === Image.Ready
             }
 
             // Quality data
-            Rectangle {
+            Item {
                 id: qualityDataRect
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 anchors.margins: 8
                 anchors.bottomMargin: 2
                 height: 20
-                color: "transparent"
+                //color: "transparent"
                 visible: root.quality !== ""
                 width: qualText.implicitWidth + resolutionText.implicitWidth + 28
 
@@ -166,9 +167,12 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     source: (root.isFavorite) ? Qt.resolvedUrl(
                                                     "../images/heart-filled.svg") : ""
-                    sourceSize.width: 40
-                    sourceSize.height: 40
-                    cache: false
+                    visible: root.isFavorite
+                    mipmap: true
+                    asynchronous: true
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    cache: true
                     fillMode: Image.PreserveAspectFit
                 }
             }
@@ -183,25 +187,13 @@ Item {
                 source: root.countryCode !== "" ? "https://flagcdn.com/w40/"
                                                   + root.countryCode.toLowerCase(
                                                       ) + ".png" : ""
-                sourceSize.width: 40
-                sourceSize.height: 20
-                cache: false
+                mipmap: true
+                asynchronous: true
+                sourceSize.width: 25
+                sourceSize.height: 25
+                cache: true
                 fillMode: Image.PreserveAspectFit
             }
-
-            // Live dot
-            // Rectangle {
-            //     id: rectangle
-            //     anchors.top: parent.top
-            //     anchors.right: parent.right
-            //     anchors.topMargin: 7
-            //     anchors.rightMargin: 7
-            //     width: 10
-            //     height: 10
-            //     radius: 5
-            //     color: Constants.liveGreen
-            //     visible: root.isLive
-            // }
         }
 
         // ── Info section ──
@@ -243,7 +235,9 @@ Item {
             }
 
             Row {
-                spacing: 6
+                anchors.left: parent.left
+                anchors.right: parent.right
+                spacing: 4
 
                 Text {
                     text: root.category
@@ -251,6 +245,7 @@ Item {
                     font.pixelSize: Constants.textFontPixelSizeLower2
                     verticalAlignment: Text.AlignVCenter
                     anchors.verticalCenter: parent.verticalCenter
+                    elide: Text.ElideRight
                 }
                 Text {
                     text: qsTr("\u002D")
@@ -334,7 +329,7 @@ Item {
                     target: gridPlayBtn.buttonMouseArea
                     function onClicked() {
                         console.log("play clicked")
-                        ChannelsController.channelIdPlayRequested(
+                        root.gridController.channelIdPlayRequested(
                                     root.channelId)
                     }
                 }
@@ -359,7 +354,7 @@ Item {
                 Connections {
                     target: gridFavBtn.buttonMouseArea
                     function onClicked() {
-                        ChannelsController.toggleFavorite(root.channelId)
+                        root.gridController.toggleFavorite(root.channelId)
                     }
                 }
             }

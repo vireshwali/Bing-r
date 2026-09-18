@@ -17,8 +17,17 @@ Item {
     height: 800
 
     property int topNavLeftMargin: 8
+    property alias favoritesController: favoritesController
     property string starterMsg: qsTr("You don't have any favourite channels yet.<br />Hit the heart button on channels to start adding your favourites.")
     property bool channelsExist: true
+
+    Component.onCompleted: {
+        console.log("Favorites onCompleted called.")
+    }
+
+    Component.onDestruction: {
+        console.log("Favorites onDestruction called.")
+    }
 
     FavoritesController {
         id: favoritesController
@@ -66,7 +75,6 @@ Item {
             anchors.top: favouritesTopNav.bottom
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            channelsModel: favoritesController.favoritesGridViewModel
             gridController: favoritesController
             visible: root.channelsExist
         }
