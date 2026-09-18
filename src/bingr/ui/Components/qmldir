@@ -16,7 +16,7 @@ CarouselArrow 1.0 CarouselArrow.ui.qml
 HorizontalPager 1.0 HorizontalPager.qml
 ChannelsTopNav 1.0 ChannelsTopNav.ui.qml
 ChannelsHeroSection 1.0 ChannelsHeroSection.ui.qml
-ChannelsGrid 1.0 ChannelsGrid.ui.qml
+ChannelsGrid 1.0 ChannelsGrid.qml
 ChannelsGridCard 1.0 ChannelsGridCard.ui.qml
 MainPlayer 1.0 MainPlayer.ui.qml
 FavoritesTopNav 1.0 FavoritesTopNav.ui.qml
