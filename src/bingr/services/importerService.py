@@ -264,7 +264,9 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
             count += 1
 
         if processed % 100 == 0:
-            appEventBus.statusBarProgressUpdate.emit(f"Processed {processed}/{len(segments)} segments for '{sourceName}'")
+            appEventBus.statusBarProgressUpdate.emit(
+                f"Processed {processed}/{len(segments)} segments for '{sourceName}'"
+            )
 
     await session.flush()
     appEventBus.statusBarProgressUpdate.emit(f"Upserted {count} new channels from '{sourceName}'")

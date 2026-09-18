@@ -51,9 +51,7 @@ Item {
         }
 
         Connections {
-            target: favouritesScreenLoader.item
-                      ? favouritesScreenLoader.item.favoritesController
-                      : null
+            target: favouritesScreenLoader.item ? favouritesScreenLoader.item.favoritesController : null
             function onChannelIdToPlay(channelId) {
                 root.pendingChannelId = channelId
                 root.showPlayer = true
@@ -159,7 +157,7 @@ Item {
 
         Connections {
             id: connections
-            target: homeScreenLoader.item.addChannelsBtn1.buttonMouseArea
+            target: homeScreenLoader.item ? homeScreenLoader.item.addChannelsBtn1.buttonMouseArea : null
             function onClicked() {
                 //unset other screen laoders
                 homeScreenLoader.sourceComponent = null
@@ -175,7 +173,7 @@ Item {
         }
 
         Connections {
-            target: homeScreenLoader.item.addChannelsBtn2.buttonMouseArea
+            target: homeScreenLoader.item ? homeScreenLoader.item.addChannelsBtn2.buttonMouseArea : null
             function onClicked() {
                 //unset other screen laoders
                 homeScreenLoader.sourceComponent = null

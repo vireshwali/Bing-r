@@ -324,6 +324,7 @@ Item {
                 btnImageSource: "../images/play.svg"
                 btnShadowBlur: 4
                 btnShadowSpread: 2
+                btnTooptipText: qsTr("Click to watch.")
 
                 Connections {
                     target: gridPlayBtn.buttonMouseArea
@@ -344,9 +345,11 @@ Item {
                                                         "../images/heart.svg")
                 btnShadowBlur: 4
                 btnShadowSpread: 2
+                btnTooptipText: qsTr("Add to favourites.")
 
                 Behavior on btnImageSource {
                     PropertyAnimation {
+                        easing.bezierCurve: [0.55, 0.055, 0.675, 0.19, 1, 1]
                         duration: 200
                     }
                 }
@@ -367,7 +370,7 @@ Item {
                 btnShadowBlur: 4
                 btnShadowSpread: 2
                 visible: root.websiteUrl !== ""
-
+                btnTooptipText: qsTr("Open channel website.")
                 Connections {
                     target: gridWebsiteBtn.buttonMouseArea
                     function onClicked() {
