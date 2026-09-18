@@ -35,6 +35,7 @@ class FavoritesController(QObject):
 
     gridIsLoading = Signal(bool)
     channelsExistInApp = Signal(bool)
+    channelIdToPlay = Signal(int)
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -45,19 +46,24 @@ class FavoritesController(QObject):
         self._gridViewModel.isLoading.connect(self.gridIsLoading)
         self._gridViewModel.setFilters(favorite="true")
 
-        appEventBus.toggleFavoriteRequested.connect(self._onToggleRequested)
         appEventBus.favoriteToggled.connect(self._onFavoriteToggled)
 
         asyncio.create_task(self.checkIfChannelsExistInApp())  # noqa: RUF006
 
     @Property(QObject, constant=True)
-    def favoritesGridViewModel(self) -> QObject:
+    def channelsViewModel(self) -> QObject:
         return self._gridViewModel
 
     @Slot(int)
-    def _onToggleRequested(self, channelId: int) -> None:
+    def toggleFavorite(self, channelId: int) -> None:
+        """Toggle favourite via the service, reload own grid, notify other screens."""
         task = asyncio.ensure_future(self._doToggle(channelId))
         task.add_done_callback(lambda fut: asyncio.create_task(self.checkIfChannelsExistInApp()))
+
+    @Slot(int)
+    def channelIdPlayRequested(self, channelId: int) -> None:
+        """Pass-through: card calls this, we emit channelIdToPlay so MainAppScreen opens the player."""
+        self.channelIdToPlay.emit(channelId)
 
     async def _doToggle(self, channelId: int) -> None:
         isFavorite = await self._service.toggleFavorite(channelId)

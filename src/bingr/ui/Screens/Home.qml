@@ -27,6 +27,14 @@ Item {
     property int topNavHeight: 55
     property bool channelsExist: true
 
+    Component.onCompleted: {
+        console.log("Home onCompleted called.")
+    }
+
+    Component.onDestruction: {
+        console.log("Home onDestruction called.")
+    }
+
     HomeController {
         id: homeController
     }

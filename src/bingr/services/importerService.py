@@ -24,6 +24,7 @@ from bingr.common.cache import getFileCache
 from bingr.common.commonUtils import trimHeap
 from bingr.common.config import getConfig
 from bingr.common.constants import KEYS
+from bingr.common.eventBus import appEventBus
 from bingr.common.exceptions import (
     DownloadError,
     MissingSourceParamsError,
@@ -206,6 +207,8 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
 
         segments.append((chId, enriched))
 
+    appEventBus.statusBarProgressUpdate.emit(f"Pre-enriched {len(segments)} segments for '{sourceName}'")
+
     # Phase 2: batch-find existing channels in one query
     allChannelIds = list({chId for chId, _ in segments})
     existingMap: dict[str, Channel] = {}
@@ -216,7 +219,9 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
 
     # Phase 3: upsert each segment using the pre-fetched map
     count = 0
+    processed = 0
     for chId, enriched in segments:
+        processed += 1
         existing = existingMap.get(chId)
         tvg_id = enriched.get("tvg_id", "")
 
@@ -258,7 +263,11 @@ async def importM3uToDb(m3uPath: Path, sourceId: int, session, sourceName: str =
             await _linkM3uChannel(session, channel.id, sourceId)
             count += 1
 
+        if processed % 100 == 0:
+            appEventBus.statusBarProgressUpdate.emit(f"Processed {processed}/{len(segments)} segments for '{sourceName}'")
+
     await session.flush()
+    appEventBus.statusBarProgressUpdate.emit(f"Upserted {count} new channels from '{sourceName}'")
     return count
 
 

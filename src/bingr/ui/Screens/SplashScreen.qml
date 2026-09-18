@@ -34,15 +34,16 @@ Item {
                     id: designEffect
                     color: "#4a484848"
                     offsetY: 0
-                    spread: 18
+                    spread: 16
                     blur: 24
                 }
             ]
         }
-
         Image {
             id: splashBgImg
             source: "../images/splashscreen_bg.jpg"
+            mipmap: true
+            cache: false
             sourceSize.height: 400
             sourceSize.width: 700
             fillMode: Image.Stretch

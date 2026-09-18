@@ -52,7 +52,7 @@ from bingr.services.systemHealthMonitorService import SystemHealthMonitorService
 
 logger = logging.getLogger("bingr.main")
 
-MAX_WAIT_TIME_SECONDS = 4.0
+MAX_WAIT_TIME_SECONDS = 5.0
 BACKGROUND_JOBS_START_DELAY_SECONDS = 10
 
 _QT_MSG_LEVEL_MAP = {
@@ -66,7 +66,7 @@ _QT_MSG_LEVEL_MAP = {
 _qmlLogger = logging.getLogger("bingr.qml")
 
 
-def _qtMessageHandler(msgType, context, message):
+def _qtMessageHandler(msgType: QtMsgType, context, message):
     """Route QML console.log/warn/error and Qt internal messages into bingr.log."""
     level = _QT_MSG_LEVEL_MAP.get(msgType, logging.INFO)
     _qmlLogger.log(level, "%s", message)
@@ -122,18 +122,18 @@ async def bootApp(splashCtrl: SplashScreenControllerType, bootStart: float):
     try:
         # sleep foa bit to let the splash screen render
         splashCtrl.publishProgressMsg("Starting application...")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
 
         splashCtrl.publishProgressMsg("Loading application configurations.....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
         cfg = getConfig()
 
         splashCtrl.publishProgressMsg("Initializing system caches....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
         initCache(cfg)
 
         splashCtrl.publishProgressMsg("Preparing databases and sources....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
 
         dbPath = cfg.dbPath()
         dbPath.parent.mkdir(parents=True, exist_ok=True)
@@ -143,7 +143,7 @@ async def bootApp(splashCtrl: SplashScreenControllerType, bootStart: float):
         # _ac_mod.set_status_controller(statusCtrl)
 
         splashCtrl.publishProgressMsg("Starting health monitoring service....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
 
         # workspace = cfg.workspacePath()
         # runtime.systemHealthMonitorService = SystemHealthMonitorService(workspace)
@@ -156,7 +156,7 @@ async def bootApp(splashCtrl: SplashScreenControllerType, bootStart: float):
         )
         QTimer.singleShot(BACKGROUND_JOBS_START_DELAY_SECONDS * 1000, startJobs)
         splashCtrl.publishProgressMsg("Scheduling jobs....")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
 
         splashCtrl.publishProgressMsg("Starting application interface...")
 

@@ -2,7 +2,7 @@ module bingr.controllers
 
 SplashScreenController 1.0 SplashScreenController.qml
 singleton StatusBarController 1.0 StatusBarController.qml
-singleton ChannelsController 1.0 ChannelsController.qml
+ChannelsController 1.0 ChannelsController.qml
 AddNewSourcesController 1.0 AddNewSourcesController.qml
 MainPlayerController 1.0 MainPlayerController.qml
 MpvFramebufferObject 1.0 MpvFramebufferObject.qml

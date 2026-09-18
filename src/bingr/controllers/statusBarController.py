@@ -20,7 +20,7 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 logger = logging.getLogger(__name__)
 
-_QUEUE_DRAIN_INTERVAL_MS = 400
+_QUEUE_DRAIN_INTERVAL_MS = 500
 _COUNT_REFRESH_INTERVAL_MS = 6_000
 _IDLE_MSG = "Idle."
 
@@ -135,17 +135,19 @@ class StatusBarController(QObject):
         try:
             sm = DatabaseManager.get_sessionmaker()
             async with sm() as session:
-                stmt = select(func.count()).select_from(Channel)
-                count = (await session.execute(stmt)).scalar() or 0
+                count = (await session.execute(select(func.count()).select_from(Channel))).scalar() or 0
                 self.channelsMsg.emit(f"Channels: {count}")
+
+                favCount = (
+                    await session.execute(select(func.count()).select_from(Channel).where(Channel.is_favorite))
+                ).scalar() or 0
+                self.favouritesMsg.emit(f"Favourites: {favCount}")
         except Exception as e:
             logger.warning("Channel count refresh failed: %s", e)
             self.channelsMsg.emit("Channels: 0")
+            self.favouritesMsg.emit("Favourites: 0")
         finally:
             self._refreshing = False
-
-        self.favouritesMsg.emit("Favourites: 0")
-        self.playlistsMsg.emit("Playlists: 0")
 
     def startCountTimer(self):
         if not self._countTimer.isActive():

@@ -60,10 +60,10 @@ class TestInit:
         assert ctrl._gridViewModel.service is fcModule.ChannelsManagementService.return_value
         assert ctrl._gridViewModel.filtersHistory == [{"favorite": "true"}]
 
-    async def testFavoritesGridViewModelPropertyReturnsVm(self):
+    async def testChannelsViewModelPropertyReturnsVm(self):
         ctrl = makeController()
 
-        assert ctrl.favoritesGridViewModel is ctrl._gridViewModel
+        assert ctrl.channelsViewModel is ctrl._gridViewModel
 
 
 class TestToggleFlow:
@@ -78,13 +78,13 @@ class TestToggleFlow:
         service.toggleFavorite.assert_awaited_once_with(7)
         assert seen == [(7, True)]
 
-    async def testOnToggleRequestedSchedulesAsyncToggle(self, mocker):
+    async def testToggleFavoriteSchedulesAsyncToggle(self, mocker):
         """The slot is fire-and-forget; pump the loop until the toggle lands."""
         service = _patchModule.service
         ctrl = makeController()
         mocker.patch.object(ctrl, "_doToggle", wraps=ctrl._doToggle)
 
-        ctrl._onToggleRequested(3)
+        ctrl.toggleFavorite(3)
         await pumpLoops(100)
 
         ctrl._doToggle.assert_awaited_once_with(3)
@@ -99,13 +99,13 @@ class TestToggleFlow:
         assert len(ctrl._gridViewModel.filtersHistory) == initialLoads + 1
         assert ctrl._gridViewModel.filtersHistory[-1] == {"favorite": "true"}
 
-    async def testToggleFromBusEndToEnd(self, mocker):
-        """toggleFavoriteRequested → persist → favoriteToggled → grid reload."""
+    async def testToggleFromSlotEndToEnd(self, mocker):
+        """toggleFavorite → persist → favoriteToggled → grid reload."""
         service = _patchModule.service
         ctrl = makeController()
         loadsBefore = len(ctrl._gridViewModel.filtersHistory)
 
-        appEventBus.toggleFavoriteRequested.emit(11)
+        ctrl.toggleFavorite(11)
         await pumpLoops()
 
         service.toggleFavorite.assert_awaited_once_with(11)

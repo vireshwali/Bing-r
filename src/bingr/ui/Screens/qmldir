@@ -1,10 +1,10 @@
 module ui.Screens
 
 SplashScreen 1.0 SplashScreen.qml
-AddChannels 1.0 AddChannels.ui.qml
-Channels 1.0 Channels.ui.qml
-Favourites 1.0 Favourites.ui.qml
-Home 1.0 Home.ui.qml
+AddChannels 1.0 AddChannels.qml
+Channels 1.0 Channels.qml
+Favourites 1.0 Favourites.qml
+Home 1.0 Home.qml
 Playlists 1.0 Playlists.ui.qml
 Settings 1.0 Settings.qml
 
