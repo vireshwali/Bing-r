@@ -415,8 +415,8 @@ class TestSettingsLoading:
         await pumpLoops()
 
         assert len(dataChangedSeen) == 1
-        assert ctrl.continueWatchingAutoScrollMs == 4000
-        assert ctrl.recentlyAddedAutoScrollMs == 7000
+        assert ctrl.continueWatchingAutoScrollMs == 0
+        assert ctrl.recentlyAddedAutoScrollMs == 0
 
     async def testPerCategorySizesApplied(self, mocker):
         overrides = {
@@ -494,8 +494,8 @@ class TestAutoScrollProperties:
         ctrl = HomeController()
         await pumpLoops()
 
-        assert ctrl.continueWatchingAutoScrollMs == 4000
-        assert ctrl.recentlyAddedAutoScrollMs == 7000
+        assert ctrl.continueWatchingAutoScrollMs == 0
+        assert ctrl.recentlyAddedAutoScrollMs == 0
 
     async def testAutoScrollDelaysDifferentPerSection(self, mocker):
         channelsService = makeChannelsServiceMock(mocker)
