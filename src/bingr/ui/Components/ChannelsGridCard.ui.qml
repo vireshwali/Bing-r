@@ -36,13 +36,14 @@ Item {
     property string languages: "English, Portuguese, French, Danish, Pakistani, African, French, Hindu, Gujarati, punjabi, kashmiriCanadian"
     property string websiteUrl: "tst"
 
+    property int cardPadding: 10
     property var gridController: null //instance of ChannelsController
 
     // Card body
     Rectangle {
         id: cardRect
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.margins: root.cardPadding
         radius: 12
         color: Constants.backgroundChannelsGridCardBg
         antialiasing: true
@@ -82,7 +83,7 @@ Item {
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.leftMargin: 6
-                anchors.topMargin: 6
+                anchors.topMargin: 8
                 text: root.indexCount
                 font.pixelSize: 12
                 z: 4
@@ -96,7 +97,7 @@ Item {
                 source: root.logoPlaceholderUrl
                 sourceSize {
                     width: 200
-                    height: width * 9 / 16
+                    height: 112 //width * 9 / 16
                 }
                 cache: true
                 fillMode: Image.PreserveAspectFit
@@ -114,7 +115,7 @@ Item {
                 source: root.logoUrl
                 sourceSize {
                     width: 200
-                    height: width * 9 / 16
+                    height: 112 //width * 9 / 16
                 }
                 cache: true
                 fillMode: Image.PreserveAspectFit

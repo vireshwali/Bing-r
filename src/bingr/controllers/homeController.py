@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import Property, QObject, Signal, Slot
@@ -18,6 +19,7 @@ import bingr.ui_models.qualityFilterViewModel as _qualVm
 from bingr.common.eventBus import appEventBus
 from bingr.common.eventTypes import ReloadChannelsDataEvent
 from bingr.services.channelsManagementService import ChannelsManagementService
+from bingr.services.settingsService import SettingsService
 from bingr.services.watchSessionService import WatchSessionService
 
 _ChannelsHeroViewModel: Any = _heroVm.ChannelsHeroViewModel
@@ -29,9 +31,11 @@ _HomeChannelsListModel: Any = _homeModel.HomeChannelsListModel
 
 if TYPE_CHECKING:
     from bingr.services.channelsManagementService import ChannelsManagementService as ChannelsManagementServiceType
+    from bingr.services.settingsService import SettingsService as SettingsServiceType
     from bingr.services.watchSessionService import WatchSessionService as WatchSessionServiceType
 else:
     ChannelsManagementServiceType = "ChannelsManagementService"
+    SettingsServiceType = "SettingsService"
     WatchSessionServiceType = "WatchSessionService"
 
 QML_IMPORT_NAME = "bingr.controllers"
@@ -57,6 +61,7 @@ class HomeController(QObject):
         super().__init__(parent)
         self._channelsService: ChannelsManagementServiceType = ChannelsManagementService()
         self._watchSessionService: WatchSessionServiceType = WatchSessionService()
+        self._settingsService: SettingsServiceType = SettingsService()
         self._loading = True
         self._recentlyAddedChannelsModel: _HomeChannelsListModel | None = None  # type: ignore
         self._continueWatchingChannelsModel: _HomeChannelsListModel | None = None  # type: ignore
@@ -72,6 +77,13 @@ class HomeController(QObject):
 
         self._pagerViewModel4SectionTitle: str | None = None
         self._pagerViewModel4: _HomeChannelsListModel | None = None  # type: ignore
+
+        self._continueWatchingAutoScrollMs: int = 0
+        self._category1AutoScrollMs: int = 0
+        self._category2AutoScrollMs: int = 0
+        self._category3AutoScrollMs: int = 0
+        self._category4AutoScrollMs: int = 0
+        self._recentlyAddedAutoScrollMs: int = 0
 
         appEventBus.reloadChannelsData.connect(self.onReloadChannelsData)
 
@@ -95,12 +107,36 @@ class HomeController(QObject):
         False once every section has finished. New sections (hero, etc.) get
         appended to this gather.
         """
+        await self._loadAutoScrollDelays()
         await asyncio.gather(
             self.loadRecentlyAddedChannelsViewModel(),
             self.loadContinueWatchingChannelsViewModel(),
             self.loadCategoriesChannels(),
         )
         self.homeDataChanged.emit()
+
+    async def _loadAutoScrollDelays(self) -> None:
+        try:
+            self._continueWatchingAutoScrollMs = int(
+                await self._settingsService.get("homeScreenContinueWatchingChannelsAutoScrollDelaySeconds") * 1000
+            ) + random.randint(10, 200)
+            self._category1AutoScrollMs = int(
+                await self._settingsService.get("homeScreenCategory1ChannelsAutoScrollDelaySeconds") * 1000
+            ) + random.randint(10, 200)
+            self._category2AutoScrollMs = int(
+                await self._settingsService.get("homeScreenCategory2ChannelsAutoScrollDelaySeconds") * 1000
+            ) + random.randint(10, 200)
+            self._category3AutoScrollMs = int(
+                await self._settingsService.get("homeScreenCategory3ChannelsAutoScrollDelaySeconds") * 1000
+            ) + random.randint(10, 200)
+            self._category4AutoScrollMs = int(
+                await self._settingsService.get("homeScreenCategory4ChannelsAutoScrollDelaySeconds") * 1000
+            ) + random.randint(10, 200)
+            self._recentlyAddedAutoScrollMs = int(
+                await self._settingsService.get("homeScreenRecentlyAddedChannelsAutoScrollDelaySeconds") * 1000
+            ) + random.randint(10, 200)
+        except Exception as e:
+            logger.exception("Failed to load auto-scroll settings: %s", e)
 
     def _setLoading(self, value: bool) -> None:
         if self._loading == value:
@@ -110,7 +146,8 @@ class HomeController(QObject):
 
     async def loadContinueWatchingChannelsViewModel(self):
         try:
-            channels = await self._watchSessionService.getContinueWatchingChannels(limit=15)
+            limit = await self._settingsService.get("homeScreenContinueWatchingChannelsSize")
+            channels = await self._watchSessionService.getContinueWatchingChannels(limit=limit)
             self._continueWatchingChannelsModel = None
             if channels:
                 model = _HomeChannelsListModel(self)
@@ -121,8 +158,8 @@ class HomeController(QObject):
 
     async def loadRecentlyAddedChannelsViewModel(self):
         try:
-            # all channels data
-            channels = await self._channelsService.getRecentlyAddedChannels(limit=30)
+            limit = await self._settingsService.get("homeScreenRecentlyAddedChannelsSize")
+            channels = await self._channelsService.getRecentlyAddedChannels(limit=limit)
             self._recentlyAddedChannelsModel = None
             if channels:
                 model = _HomeChannelsListModel(self)
@@ -137,10 +174,18 @@ class HomeController(QObject):
             if not categoriesList:
                 return
 
+            cat1 = await self._settingsService.get("homeScreenCategory1ChannelsSize")
+            cat2 = await self._settingsService.get("homeScreenCategory2ChannelsSize")
+            cat3 = await self._settingsService.get("homeScreenCategory3ChannelsSize")
+            cat4 = await self._settingsService.get("homeScreenCategory4ChannelsSize")
+            categorySizes = [cat1, cat2, cat3, cat4]
             channelsPerCategory = await asyncio.gather(
                 *[
-                    self._channelsService.getChannelsByCategory(category=category, limit=30)
-                    for category in categoriesList
+                    self._channelsService.getChannelsByCategory(
+                        category=category,
+                        limit=categorySizes[index] if index < len(categorySizes) else categorySizes[-1],
+                    )
+                    for index, category in enumerate(categoriesList)
                 ]
             )
 
@@ -201,6 +246,30 @@ class HomeController(QObject):
     @Property(str, notify=loadingChanged)
     def pagerViewModel4SectionTitle(self) -> str:
         return self._pagerViewModel4SectionTitle  # type: ignore
+
+    @Property(int, notify=homeDataChanged)
+    def continueWatchingAutoScrollMs(self) -> int:
+        return self._continueWatchingAutoScrollMs
+
+    @Property(int, notify=homeDataChanged)
+    def category1AutoScrollMs(self) -> int:
+        return self._category1AutoScrollMs
+
+    @Property(int, notify=homeDataChanged)
+    def category2AutoScrollMs(self) -> int:
+        return self._category2AutoScrollMs
+
+    @Property(int, notify=homeDataChanged)
+    def category3AutoScrollMs(self) -> int:
+        return self._category3AutoScrollMs
+
+    @Property(int, notify=homeDataChanged)
+    def category4AutoScrollMs(self) -> int:
+        return self._category4AutoScrollMs
+
+    @Property(int, notify=homeDataChanged)
+    def recentlyAddedAutoScrollMs(self) -> int:
+        return self._recentlyAddedAutoScrollMs
 
     @Slot(object)
     def onReloadChannelsData(self, event: ReloadChannelsDataEvent) -> None:

@@ -124,32 +124,41 @@ Item {
 
             IconButtonWithText {
                 id: resetBtn
+                height: 36
                 anchors.right: parent.right
                 anchors.rightMargin: 28
                 anchors.verticalCenter: parent.verticalCenter
                 btnImageSource: Qt.resolvedUrl("../images/reset.svg")
                 btnText: qsTr("Reset")
-                btnImageSize: 28
+                btnTooptipText: qsTr("Revert settings to system defaults.")
+                btnImageSize: 26
+                btnRadius: 18
             }
 
             IconButtonWithText {
                 id: cancleBtn
+                height: 36
                 anchors.right: resetBtn.left
                 anchors.rightMargin: 28
-                anchors.verticalCenter: resetBtn.verticalCenter
+                anchors.verticalCenter: parent.verticalCenter
                 btnImageSource: Qt.resolvedUrl("../images/cancle.svg")
                 btnText: qsTr("Cancle")
-                btnImageSize: 28
+                btnTooptipText: qsTr("Revert settings to last saved.")
+                btnImageSize: 26
+                btnRadius: 18
             }
 
             IconButtonWithText {
                 id: saveBtn
+                height: 36
                 anchors.right: cancleBtn.left
                 anchors.rightMargin: 28
-                anchors.verticalCenter: resetBtn.verticalCenter
+                anchors.verticalCenter: parent.verticalCenter
                 btnImageSource: Qt.resolvedUrl("../images/save.svg")
                 btnText: qsTr("Save")
-                btnImageSize: 28
+                btnTooptipText: qsTr("Save all settings.")
+                btnImageSize: 26
+                btnRadius: 18
             }
         }
     }

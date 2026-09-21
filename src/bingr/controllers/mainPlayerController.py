@@ -305,7 +305,7 @@ class MainPlayerController(QObject):
         self._streamsViewModel.resetItems(streams)
         self.currentStreamIndexChanged.emit(0)
         self.playUrlRequested.emit(streams[0].url)
-        logger.info("Playing stream 0/%s: %s", len(streams), streams[0].url)
+        logger.info("Playing stream 1/%s: %s", len(streams), streams[0].url)
 
         asyncio.ensure_future(self._service.incrementVisitCount(channelId))  # noqa: RUF006
 
@@ -320,7 +320,7 @@ class MainPlayerController(QObject):
             self.playUrlRequested.emit(self._streamUrls[index].url)
             logger.info(
                 "Switched to stream %s/%s: %s",
-                index,
+                (index + 1),
                 len(self._streamUrls),
                 self._streamUrls[index].url,
             )

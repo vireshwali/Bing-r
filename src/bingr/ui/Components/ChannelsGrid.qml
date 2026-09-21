@@ -1,4 +1,3 @@
-
 import QtQuick
 import QtQuick.Controls
 import ui
@@ -13,8 +12,12 @@ Item {
     property var gridController: null
 
     // ── Grid Layout ──
-    property int cardWidth: 240
-    property int columns: 4
+    property int minCardWidth: 240
+    property int maxColumns: 8
+    readonly property int columns: Math.min(
+                                       maxColumns, Math.max(
+                                           1, Math.floor(
+                                               width / (minCardWidth + gridSpacing))))
     readonly property real gridSpacing: 12
     readonly property int sideMargin: 24
     readonly property int cacheBuffer: 200
@@ -23,13 +26,18 @@ Item {
     GridView {
         id: channelsGridView
         anchors.fill: parent
+        anchors.leftMargin: 4
+        anchors.rightMargin: 4
         model: root.gridController.channelsViewModel
-        cellWidth: root.cardWidth + root.gridSpacing
-        cellHeight: root.cardWidth + 48 + root.gridSpacing
+        cellWidth: Math.floor(width / root.columns)
+        cellHeight: cellWidth + 46
+        //cellHeight: 295
         cacheBuffer: root.cacheBuffer
         clip: true
 
-        //boundsBehavior: Flickable.StopAtBounds
+        //reuseItems: true
+        //focus: true
+        //keyNavigationEnabled: true
         delegate: ChannelsGridCard {
             id: gridDelegate
             width: channelsGridView.cellWidth
@@ -53,6 +61,35 @@ Item {
             websiteUrl: model.websiteUrl
 
             gridController: root.gridController
+            cardPadding: Math.round(root.gridSpacing / 2)
+
+            // 1. Force smooth tracking of visual coordinate shifts during resize
+            Behavior on x {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.Linear
+                }
+            }
+            Behavior on y {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.Linear
+                }
+            }
+
+            // 2. Smoothly scale item dimensions simultaneously
+            Behavior on width {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.Linear
+                }
+            }
+            Behavior on height {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.Linear
+                }
+            }
         }
 
         // Attaches the scrollbar with adaptive visibility
@@ -80,6 +117,25 @@ Item {
                 }
             }
         }
+
+        // Connections {
+        //     target: channelsGridView.Keys
+
+        //     function onPressed(event) {
+        //         console.log("event: " + event)
+        //         if (event.key === Qt.Key_PageDown) {
+        //             channelsGridView.contentY = Math.min(
+        //                         channelsGridView.contentY + channelsGridView.height,
+        //                         channelsGridView.contentHeight - channelsGridView.height)
+        //             event.accepted = true
+        //         } else if (event.key === Qt.Key_PageUp) {
+        //             channelsGridView.contentY = Math.max(
+        //                         channelsGridView.contentY - channelsGridView.height,
+        //                         0)
+        //             event.accepted = true
+        //         }
+        //     }
+        // }
     }
 
     // ── Initial loading overlay ────────────────────────────────────────
