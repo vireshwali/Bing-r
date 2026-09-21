@@ -429,7 +429,9 @@ class TestSettingsLoading:
         channelsService = makeChannelsServiceMock(mocker)
         channelsService.getChannelsCount = mocker.AsyncMock(return_value=5)
         channelsService.getTopCategoryNames = mocker.AsyncMock(return_value=categories)
-        channelsService.getChannelsByCategory = mocker.AsyncMock(side_effect=[[{"id": i}] for i in range(4)])
+        channelsService.getChannelsByCategory = mocker.AsyncMock(
+            side_effect=[[{"id": i}] for i in range(4)]
+        )
         watchService = makeWatchSessionServiceMock(mocker)
         settingsService = makeSettingsServiceMock(mocker, overrides)
         mocker.patch.object(hcModule, "ChannelsManagementService", mocker.MagicMock(return_value=channelsService))
