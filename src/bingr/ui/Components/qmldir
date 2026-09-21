@@ -35,3 +35,4 @@ CustomSwitch 1.0 CustomSwitch.ui.qml
 
 SettingsGeneral 1.0 SettingsGeneral.ui.qml
 SettingsHome 1.0 SettingsHome.ui.qml
+SettingsPlayer 1.0 SettingsPlayer.ui.qml

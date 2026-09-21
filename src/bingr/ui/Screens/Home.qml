@@ -159,7 +159,7 @@ Item {
                         title: qsTr("Continue Watching")
                         channelModel: homeController.continueWatchingChannelsViewModel
                         visible: homeController.continueWatchingChannelsViewModel !== null
-                        autoScrollInterval: 6900
+                        autoScrollInterval: homeController.continueWatchingAutoScrollMs
                     }
 
                     HorizontalPager {
@@ -170,7 +170,7 @@ Item {
                                    homeController.pagerViewModel1SectionTitle)
                         channelModel: homeController.pagerViewModel1
                         visible: homeController.pagerViewModel1 !== null
-                        autoScrollInterval: 6000
+                        autoScrollInterval: homeController.category1AutoScrollMs
                     }
 
                     HorizontalPager {
@@ -181,7 +181,7 @@ Item {
                                    homeController.pagerViewModel2SectionTitle)
                         channelModel: homeController.pagerViewModel2
                         visible: homeController.pagerViewModel2 !== null
-                        autoScrollInterval: 6300
+                        autoScrollInterval: homeController.category2AutoScrollMs
                     }
 
                     HorizontalPager {
@@ -192,7 +192,7 @@ Item {
                                    homeController.pagerViewModel3SectionTitle)
                         channelModel: homeController.pagerViewModel3
                         visible: homeController.pagerViewModel3 !== null
-                        autoScrollInterval: 6500
+                        autoScrollInterval: homeController.category3AutoScrollMs
                     }
 
                     HorizontalPager {
@@ -203,7 +203,7 @@ Item {
                                    homeController.pagerViewModel4SectionTitle)
                         channelModel: homeController.pagerViewModel4
                         visible: homeController.pagerViewModel4 !== null
-                        autoScrollInterval: 6700
+                        autoScrollInterval: homeController.category4AutoScrollMs
                     }
 
                     HorizontalPager {
@@ -213,7 +213,7 @@ Item {
                         title: qsTr("Recently Added")
                         channelModel: homeController.recentlyAddedChannelsViewModel
                         visible: homeController.recentlyAddedChannelsViewModel !== null
-                        autoScrollInterval: 7100
+                        autoScrollInterval: homeController.recentlyAddedAutoScrollMs
                     }
                 }
             }
