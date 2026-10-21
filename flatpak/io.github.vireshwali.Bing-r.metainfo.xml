@@ -4,29 +4,66 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
   <name>Bing-r</name>
-  <summary>A modern desktop IPTV and media player</summary>
+  <summary>A Modern Desktop IPTV and Media Player for all your Binge</summary>
   <description>
     <p>
-      Bingr is a high-performance desktop media client for Live TV, VOD,
-      library management, and playback. Import M3U playlists, browse channels
-      by category and country, and watch with hardware-accelerated mpv playback.
+      Bing-r is a modern desktop IPTV and media player/manager application.
+      Designed as a high-performance, desktop-native media client focused 
+      ultimately on Live TV, Flix (VOD & TV Series), library management, 
+      high quality playback, discovery, and community-style metadata/reviews
+       == Simple modern Media Player for all your Binge in one place.
+    </p>
+    <p>
+      Note: Bing-r does not provide any playlists or other digital content. 
+      Bing-r is purely a media and content management and playing 
+      application platform. The channels and pictures in the screenshots are 
+      for demonstration purposes only.
     </p>
     <p>Features:</p>
     <ul>
-      <li>M3U playlist import from files and URLs</li>
+      <li>M3U-based content manager — import M3U / M3U8 playlists from local files or remote URLs</li>
+      <li>Modern application with fluid user experience</li>
       <li>Channel browsing with category and country filters</li>
-      <li>Hardware-accelerated playback via mpv</li>
-      <li>Favorites and visit tracking</li>
+      <li>Channel search and filtering</li>
+      <li>Automatic Metadata and Feed/stream enrichment with scored selection (format, region, name)</li>
+      <li>Hardware-accelerated high quality playback via MPV</li>
+      <li>Create and Manage Favorites and visit tracking</li>
       <li>Dark theme with modern Qt Quick UI</li>
     </ul>
   </description>
   <launchable type="desktop-id">io.github.vireshwali.Bing-r.desktop</launchable>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Player</category>
+    <category>TV</category>
+    <category>AudioVideo</category>
+  </categories>
+  <keywords>
+    <keyword>IPTV</keyword>
+    <keyword>TV</keyword>
+    <keyword>OpenTv</keyword>
+    <keyword>VOD</keyword>
+    <keyword>Stream</keyword>
+    <keyword>Feeds</keyword>
+    <keyword>Video</keyword>
+    <keyword>Audio</keyword>
+    <keyword>Movie</keyword>
+    <keyword>Series</keyword>
+    <keyword>Shows</keyword>
+    <keyword>Linux</keyword>
+    <keyword>Flatpak</keyword>
+  </keywords>
   <url type="homepage">https://github.com/vireshwali/Bing-r</url>
   <url type="bugtracker">https://github.com/vireshwali/Bing-r/issues</url>
+  <url type="code">https://github.com/vireshwali/Bing-r</url>
   <developer id="io.github.vireshwali">
     <name>Viresh Wali</name>
   </developer>
-  <content_rating type="oars-1.1"/>
+  <content_rating type="oars-1.1" />
+  <!-- <categories>
+  <category>Development</category>
+  <category>Science</category>
+</categories> -->
   <supports>
     <control>keyboard</control>
     <control>pointing</control>
@@ -44,6 +81,15 @@
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/vireshwali/Bing-r/main/screenshots/Selection_4.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/vireshwali/Bing-r/main/screenshots/Selection_5.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/vireshwali/Bing-r/main/screenshots/Selection_6.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/vireshwali/Bing-r/main/screenshots/Selection_7.png</image>
     </screenshot>
   </screenshots>
   <releases>

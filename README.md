@@ -6,9 +6,9 @@
 
 [![CI](https://img.shields.io/github/actions/workflow/status/vireshwali/Bing-r/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/vireshwali/Bing-r/actions/workflows/ci.yml) &nbsp; [![codecov](https://img.shields.io/codecov/c/github/vireshwali/Bing-r?style=for-the-badge&logo=codecov&color=brightgreen)](https://codecov.io/gh/vireshwali/Bing-r) &nbsp; [![Release](https://img.shields.io/github/release/vireshwali/Bing-r.svg?style=for-the-badge&logo=github)](https://github.com/vireshwali/Bing-r/releases) &nbsp; [![Python](https://img.shields.io/badge/python-3.12+-blue.svg?style=for-the-badge&logo=python)](https://python.org) &nbsp; [![Qt](https://img.shields.io/badge/Qt-6.11-green.svg?style=for-the-badge&logo=qt)](https://qt.io) &nbsp; [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-🌐 **Website** (coming soon) | **Discord/Telegram** (coming soon) | **Flatpak** (coming soon) | [Report Issues](https://github.com/vireshwali/Bing-r/issues)
+🌐 **Website** (coming soon) | **Discord/Telegram** (coming soon) | [**Get Bing-r from Flatpak**](https://flathub.org/en/apps/io.github.vireshwali.Bing-r) | [Report Issues](https://github.com/vireshwali/Bing-r/issues)
 
-**Bing-r** is a modern desktop IPTV and media player/manager application built with Python, PySide6, and Qt Quick/QML. Designed as a high-performance, desktop-native media client focused on Live TV, VOD, library management, playback, discovery, and community-style metadata/reviews.
+**Bing-r** is a modern desktop IPTV and media player/manager application built with Python, PySide6, and Qt Quick/QML. Designed as a high-performance, desktop-native media client focused ultimately on Live TV, VOD, library management, playback, discovery, and community-style metadata/reviews == Simple modern App for all your Binge in one place.
 
 **Linux-first** — we believe your workstation should be the command centre for everything: work, play, and entertainment. No more juggling between six browser tabs, a media player, and a terminal. Bing-r brings it all together so you stay in the zone. Windows and macOS builds coming soon.
 
@@ -16,7 +16,7 @@
 
 > [!IMPORTANT]
 > **Official sources only.** Bing-r is a free, open-source **player** - it never sells IPTV subscriptions, channels, or playlists. Websites offering "Bing-r subscriptions/channels/premium/activated" builds are **not affiliated** with this project or this proejct's authors. <br />
-> Get the app only from the [official GitHub repository](https://github.com/vireshwali/Bing-r) or [GitHub Releases](https://github.com/vireshwali/Bing-r/releases).
+> Get the app only from the [**Flatpak**](https://flathub.org/en/apps/io.github.vireshwali.Bing-r) or [official GitHub repository](https://github.com/vireshwali/Bing-r) or [GitHub Releases](https://github.com/vireshwali/Bing-r/releases).
 
 ---
 
@@ -26,11 +26,10 @@
 - **M3U-based content manager** — import M3U / M3U8 playlists from local files or remote URLs
 - Drag-and-drop file import with instant processing
 - URL-based playlist download with automatic updates
-- EPG URL parsing from `x-tvg-url` headers
+<!-- - EPG URL parsing from `x-tvg-url` headers -->
 
 ### Playback
-- Built-in Qt Multimedia / mpv integration (planned)
-
+- Built-in high quality MPV player integration.
 
 ### Live TV & EPG
 - Channel grid with category/country/quality filters
@@ -41,11 +40,12 @@
 ### Library Management
 - SQLite database with SQLAlchemy async ORM
 - Automatic channel deduplication and merge across sources
-- Visit counting and favorites (planned)
-- Recently viewed / watch history (planned)
+- Multiple streams for channels when aavailable
+- Visit counting and favorites
+- Recently viewed / watch history
 
 ### Metadata & Enrichment
-- **iptv-org** integration — automatic channel lookup by tvg-id. Bing-r works well with iptv-org m3us and has been etsted with other popular content sources as well. As long as the m3us conform to basic m3u formats, it shoudl work well with Bing-r
+- **iptv-org** integration — automatic channel lookup by tvg-id. Bing-r works well with iptv-org m3us and has been tested with other popular content sources as well. As long as the m3us conform to basic m3u formats, it shoudl work well with Bing-r
 - Feed/stream matching with scored selection (format, region, name)
 - Broadcast area, categories, languages expansion
 - Canonical names, alt_names, tags, logos from iptv-org database
@@ -54,41 +54,48 @@
 - Per-source and global channel management
 - Category, country, quality filters
 - Search across channels using channel names
-- Create Playlists and Groups (planned))
+- Create Playlists and Groups (planned)
 - Command palette and keybaord shortcuts(planned)
 
 ### Platform
-- Cross-platform desktop app backbone. Focused on Linux initially (macOS, Windows planned)
+- Cross-platform desktop app backbone but Focused on Linux initially (macOS, Windows planned)
 - Native Qt Quick Controls based UI with responsive and fluid feel.
 - Dark theme. (Light theme planned)
-- Keyboard shortcuts
+<!-- - Keyboard shortcuts -->
 
 ---
 
 ## Screenshots
 
-> **Coming soon** — Screenshots will be added after UI polish.
+> **App Screenshots are for demonstration only and provided using free iptv org playlists.**
 
-### Main Channel View
-![Bing-r Channels](screenshots/channels-view.png)
+### Home View With Navigation
+<img src="screenshots/Selection_1.png" width="80%" alt="Home View With Navigation" />
 
-### Add Channels / Import
-![Bing-r Add Channels](screenshots/add-channels.png)
+### Channels View with Hero and Grid
+<img src="screenshots/Selection_2.png" width="80%" alt="Channels View with Hero and Grid" />
 
-### Home / Dashboard
-![Bing-r Home](screenshots/home.png)
+### Channels Search and Filter
+<img src="screenshots/Selection_3.png" width="80%" alt="Channels Search and Filter" />
 
-### EPG / TV Guide (Planned)
-![Bing-r EPG](screenshots/epg.png)
+### Favourites View
+<img src="screenshots/Selection_4.png" width="80%" alt="Favourites View" />
 
-### Settings
-![Bing-r Settings](screenshots/settings.png)
+### Add M3U Channels Playlists
+<img src="screenshots/Selection_5.png" width="80%" alt="Add M3U Channels Playlists" />
+
+### Player view for quick and easy Binge
+<img src="screenshots/Selection_6.png" width="80%" alt="Player view for quick and easy Binge" />
+
+### Full Screen Player but embedded in the App
+<img src="screenshots/Selection_7.png" width="80%" alt="Full Screen Player but embedded in the App" />
 
 ---
 
 ## Installation
+### From [Flatpak](https://flathub.org/en/apps/io.github.vireshwali.Bing-r) Recommended
 
-### From Source (Recommended)
+### From Source 
 
 ```bash
 # Prerequisites: Python 3.12+, uv (or pip)
@@ -118,8 +125,8 @@ ruff check . --fix
 uv run basedpyright
 ```
 
-### Packaged Builds (Planned)
-- Linux: AppImage, Flatpak, Snap
+### Packaged Builds
+- Linux: [Flatpak](https://flathub.org/en/apps/io.github.vireshwali.Bing-r), Snap (Planned)
 
 Planned Later
 - macOS: .dmg (signed/notarized)
@@ -131,18 +138,17 @@ Planned Later
 
 ### Adding Playlists
 1. Open **Add Channels** from the left navigation
-2. **Drag & drop** `.m3u`/`.m3u8` files, or
-3. **Paste URLs** (up to 4) in the URL input fields
+2. **Drag & drop** `.m3u` files, or
+3. **Paste .m3u URLs** (up to 4) in the URL input fields
 4. Click **Add URLs** or wait for file processing
-5. Channels appear in the **Channels** screen automatically
+5. Channels appear in the **Home** and **Channels** screen automatically
 
 ### Navigating Channels
 - **Home** — Dashboard with quick actions
 - **Channels** — Full channel grid with filters (category, country, quality)
-- **Favourites** — Your favorite channels (planned)
-- **Playlists** — Manage imported sources (planned)
+- **Favourites** — Your favorite channels
 
-### Keyboard Shortcuts
+<!-- ### Keyboard Shortcuts
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl/Cmd+K` | Open command palette (planned) |
@@ -150,13 +156,13 @@ Planned Later
 | `Space` | Play/pause (when player active) |
 | `F` | Toggle fullscreen (when player active) |
 | `M` | Mute |
-| `?` | Show shortcuts help (planned) |
+| `?` | Show shortcuts help (planned) | -->
 
 ---
 
 ## Development
 
-### Architecture Overview
+<!-- ### Architecture Overview
 ```
 src/bingr/
 ├── main.py                    # App entry: splash -> async init -> App.qml
@@ -166,7 +172,7 @@ src/bingr/
 ├── ui_models/                 # QAbstractListModel view models for QML
 ├── db/                        # SQLAlchemy models, manager, migrations
 └── common/                    # Config, cache, logging, event bus
-```
+``` -->
 
 ### Key Technologies
 - **UI**: PySide6 6.11 + Qt Quick Controls 2 + Qt Quick Layouts
@@ -204,7 +210,7 @@ uv run basedpyright
 ```
 
 ### Adding QML Components
-1. Create `.ui.qml` in `src/bingr/ui/Components/`
+1. Create `.ui.qml` or `.qml` in `src/bingr/ui/Components/`
 2. Register in `src/bingr/ui/Components/qmldir`
 3. Import in screens via `import "../Components"`
 
@@ -242,16 +248,13 @@ The name **"Bing-r"** and the Bing-r logo are trademarks of the project owner. T
 - **[orjson](https://github.com/ijl/orjson)** — Fast JSON (MIT / Apache-2.0)
 - **[python-dotenv](https://github.com/theskumar/python-dotenv)** — Environment config (BSD-3)
 
-### Data Sources
+### Data Sources Recommended
 - **[iptv-org](https://github.com/iptv-org)** — Channel / feed / stream metadata database (MIT)
   Channels, feeds, streams, categories, countries, languages, regions, cities, subdivisions — used for automatic playlist enrichment and EPG matching.
 
 ### Icons & Assets
-- Icons from various open-source icon sets (sources TBD)
-- Splash screen background (TBD)
-
-### Inspiration & Reference
-- **[IPTVnator](https://github.com/4gray/iptvnator)** — Feature reference & README structure
+- Icons from various open-source icon sets
+- Splash screen background from free images source set
 
 ---
 
@@ -260,15 +263,14 @@ Refer the License file for extended licensing terms.
 
 ---
 
-## Contributing
+## Contributing and Support
 
-Contributions are welcome! Please read our contributing guidelines (coming soon) before submitting PRs.
+Contributions Monetary support is always welcome and encouraged! Please read our contributing guidelines (coming soon) before submitting PRs.
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+1. Create a feature branch
+2. Make your changes
+3. Run tests and linting
+4. Submit a pull request
 
 ---
 
@@ -276,7 +278,7 @@ Contributions are welcome! Please read our contributing guidelines (coming soon)
 
 - **Issues**: [GitHub Issues](https://github.com/vireshwali/Bing-r/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/vireshwali/Bing-r/discussions)
-- **Security**: Email security concerns to [security@vireshwali.dev](mailto:security@vireshwali.dev)
+- **Security**/**Suggestions**: Email to [vireshwali@gmail.com](mailto:vireshwali@gmail.com)
 
 ---
 
