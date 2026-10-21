@@ -245,5 +245,7 @@ modules:
   - install -Dm644 flatpak/io.github.vireshwali.Bing-r.metainfo.xml /app/share/metainfo/io.github.vireshwali.Bing-r.metainfo.xml
   - install -Dm644 flatpak/io.github.vireshwali.Bing-r.png /app/share/icons/hicolor/512x512/apps/io.github.vireshwali.Bing-r.png
   sources:
-  - type: dir
-    path: ..
+  - type: git
+    url: https://github.com/vireshwali/Bing-r.git
+    tag: v1.7.1-Hangul
+    commit: 15b0d4fde07aeacb5a7137439101922561e9988d
