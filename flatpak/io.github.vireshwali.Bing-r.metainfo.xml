@@ -9,7 +9,7 @@
     <p>
       Bing-r is a modern desktop IPTV and media player/manager application.
       Designed as a high-performance, desktop-native media client focused 
-      ultimately on Live TV, Flix (VOD & TV Series), library management, 
+      ultimately on Live TV, Flix (VOD and TV Series), library management, 
       high quality playback, discovery, and community-style metadata/reviews
        == Simple modern Media Player for all your Binge in one place.
     </p>
@@ -55,7 +55,7 @@
   </keywords>
   <url type="homepage">https://github.com/vireshwali/Bing-r</url>
   <url type="bugtracker">https://github.com/vireshwali/Bing-r/issues</url>
-  <url type="code">https://github.com/vireshwali/Bing-r</url>
+  <url type="contribute">https://github.com/vireshwali/Bing-r</url>
   <developer id="io.github.vireshwali">
     <name>Viresh Wali</name>
   </developer>
