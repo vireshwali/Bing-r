@@ -97,6 +97,8 @@ class HomeController(QObject):
             self.channelsExistInApp.emit(hasChannels)
             if hasChannels:
                 await self.loadHomeData()
+        except Exception:
+            logger.exception("checkIfChannelsExistInApp failed")
         finally:
             self._setLoading(False)
 

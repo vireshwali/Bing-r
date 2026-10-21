@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -14,6 +15,23 @@ from sqlalchemy.pool import NullPool
 from bingr.db.migrate import runMigrations
 
 logger = logging.getLogger(__name__)
+
+_BUSY_TIMEOUT_MS = 30_000
+
+
+def _configureSqliteConnection(dbapiConnection, _connectionRecord) -> None:
+    """Apply per-connection PRAGMAs so readers never collide with a long import.
+
+    ``journal_mode=WAL`` lets concurrent readers proceed while a writer holds
+    the database (e.g. an m3u import), and ``busy_timeout`` makes other
+    writers retry instead of failing immediately with ``database is locked``.
+    """
+    cursor = dbapiConnection.cursor()
+    try:
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MS}")
+    finally:
+        cursor.close()
 
 
 class DatabaseManager:
@@ -53,7 +71,9 @@ class DatabaseManager:
             f"sqlite+aiosqlite:///{dbPath}",
             echo=False,
             poolclass=NullPool,
+            connect_args={"timeout": 30},
         )
+        event.listen(cls._engine.sync_engine, "connect", _configureSqliteConnection)
         cls._sessionmaker = async_sessionmaker(
             cls._engine,
             expire_on_commit=False,

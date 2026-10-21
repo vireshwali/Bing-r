@@ -1,5 +1,8 @@
+import asyncio
+
+import aiosqlite
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from bingr.common.exceptions import (
     DownloadError,
@@ -252,3 +255,34 @@ async def testImportUnexpectedErrorWrapped(cfg, dbSessionmaker, sample_m3u, tmp_
     with pytest.raises(ProcessingError) as exc:
         await importM3u(sourceName="unexpected", m3uPath=m3u_copy, config=cfg)
     assert exc.value.reason == "unexpected_error"
+
+
+async def testConcurrentReadSucceedsWhileWriteLockHeld(cfg, dbSessionmaker):
+    """WAL regression: readers must not block while another connection holds a write lock.
+
+    Reproduces the 'database is locked' failure from the bug report: an m3u
+    import holds the database while status-bar/Home count queries run on their
+    own connections.
+    """
+    dbPath = cfg.dbPath()
+    writer = await aiosqlite.connect(dbPath)
+    try:
+        await writer.execute("CREATE TABLE IF NOT EXISTS _lock_probe (id INTEGER PRIMARY KEY)")
+        await writer.execute("DELETE FROM _lock_probe")
+        await writer.execute("INSERT INTO _lock_probe (id) VALUES (1)")
+        await writer.commit()
+
+        # Hold an exclusive write lock with an uncommitted row — under the old
+        # rollback-journal mode this blocks every reader on other connections.
+        await writer.execute("BEGIN EXCLUSIVE")
+        await writer.execute("INSERT INTO _lock_probe (id) VALUES (2)")
+
+        async def readCount():
+            async with DatabaseManager.get_sessionmaker()() as session:
+                return (await session.execute(text("SELECT count(*) FROM _lock_probe"))).scalar_one()
+
+        count = await asyncio.wait_for(readCount(), timeout=2.0)
+        assert count == 1  # the uncommitted row is invisible; the read is not blocked
+    finally:
+        await writer.rollback()
+        await writer.close()

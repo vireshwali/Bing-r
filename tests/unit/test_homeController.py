@@ -96,6 +96,24 @@ class TestCheckIfChannelsExistInApp:
         # initial value True → only the transition to False is emitted
         assert loadingSeen == [False]
 
+    async def testGetChannelsCountFailureIsLoggedWithTraceback(self, mocker):
+        """DB errors (e.g. 'database is locked') must be logged, not escape into a fire-and-forget task."""
+        channelsService = makeChannelsServiceMock(mocker)
+        channelsService.getChannelsCount = mocker.AsyncMock(side_effect=RuntimeError("database is locked"))
+        watchService = makeWatchSessionServiceMock(mocker)
+        settingsService = makeSettingsServiceMock(mocker)
+        mocker.patch.object(hcModule, "ChannelsManagementService", mocker.MagicMock(return_value=channelsService))
+        mocker.patch.object(hcModule, "WatchSessionService", mocker.MagicMock(return_value=watchService))
+        mocker.patch.object(hcModule, "SettingsService", mocker.MagicMock(return_value=settingsService))
+        mocker.patch.object(hcModule, "_HomeChannelsListModel", FakeHomeListModel)
+        logException = mocker.patch.object(hcModule.logger, "exception")
+
+        ctrl = HomeController()
+        await pumpLoops()
+
+        assert logException.called
+        assert ctrl._loading is False
+
     async def testWithChannelsLoadsAllSections(self, mocker):
         channelsService = makeChannelsServiceMock(mocker)
         channelsService.getChannelsCount = mocker.AsyncMock(return_value=5)

@@ -15,15 +15,21 @@ Item {
     property bool importing: false
     property bool isProcessingActive: false
 
+    // True while the controller's import task(s) are still running — used by
+    // MainAppScreen to defer destroying this page until imports complete.
+    readonly property bool importInProgress: addNewSourcesController.processingActive
+
+    property alias addNewSourcesController: addNewSourcesController
+
     readonly property color filesDropAreaRectColor: "#181818"
     readonly property color filesDropAreaRectBorderColor: "#323232"
 
     Component.onCompleted: {
-        console.log("AddChannels onCompleted called.")
+        console.log("AddChannels onCompleted called.");
     }
 
     Component.onDestruction: {
-        console.log("AddChannels onDestruction called.")
+        console.log("AddChannels onDestruction called.");
     }
 
     AddNewSourcesController {
@@ -126,24 +132,22 @@ Item {
                         target: filesDropArea
                         function onDropped(drop: DragEvent) {
                             if (!drop.hasUrls) {
-                                drop.accepted = false
-                                return
+                                drop.accepted = false;
+                                return;
                             }
-                            let count = 0
+                            let count = 0;
                             for (var i = 0; i < drop.urls.length; i++) {
-                                let urlStr = drop.urls[i].toString()
-                                let fileName = urlStr.split('/').pop()
-                                if (fileName.toLowerCase().endsWith('.m3u')
-                                        || fileName.toLowerCase().endsWith(
-                                            '.m3u8')) {
-                                    count++
+                                let urlStr = drop.urls[i].toString();
+                                let fileName = urlStr.split('/').pop();
+                                if (fileName.toLowerCase().endsWith('.m3u') || fileName.toLowerCase().endsWith('.m3u8')) {
+                                    count++;
                                 }
                             }
                             //root.selectedFileCount = count
-                            root.isProcessingActive = true
-                            addNewSourcesController.processM3UFiles(drop.urls)
+                            root.isProcessingActive = true;
+                            addNewSourcesController.processM3UFiles(drop.urls);
                             if (count === 0)
-                                drop.accepted = false
+                                drop.accepted = false;
                         }
                     }
                 }
@@ -200,8 +204,7 @@ Item {
                         id: customTextInput1
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
-                        placeholderText: qsTr(
-                                             "Type or Paste your M3U url here.")
+                        placeholderText: qsTr("Type or Paste your M3U url here.")
                         shadowBlur: 1
                         shadowSpreadSize: 1
                     }
@@ -210,8 +213,7 @@ Item {
                         id: customTextInput2
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
-                        placeholderText: qsTr(
-                                             "Type or Paste your M3U url here.")
+                        placeholderText: qsTr("Type or Paste your M3U url here.")
                         shadowBlur: 1
                         shadowSpreadSize: 1
                     }
@@ -219,8 +221,7 @@ Item {
                         id: customTextInput3
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
-                        placeholderText: qsTr(
-                                             "Type or Paste your M3U url here.")
+                        placeholderText: qsTr("Type or Paste your M3U url here.")
                         shadowBlur: 1
                         shadowSpreadSize: 1
                     }
@@ -228,8 +229,7 @@ Item {
                         id: customTextInput4
                         width: parent.width * 0.8
                         anchors.horizontalCenter: parent.horizontalCenter
-                        placeholderText: qsTr(
-                                             "Type or Paste your M3U url here.")
+                        placeholderText: qsTr("Type or Paste your M3U url here.")
                         shadowBlur: 1
                         shadowSpreadSize: 1
                     }
@@ -243,36 +243,31 @@ Item {
                     Connections {
                         target: addUrlsBtn.buttonMouseArea
                         function onClicked() {
-                            let urlsArray = []
-                            let url1 = customTextInput1.textInput.text
-                            let url2 = customTextInput2.textInput.text
-                            let url3 = customTextInput3.textInput.text
-                            let url4 = customTextInput4.textInput.text
+                            let urlsArray = [];
+                            let url1 = customTextInput1.textInput.text;
+                            let url2 = customTextInput2.textInput.text;
+                            let url3 = customTextInput3.textInput.text;
+                            let url4 = customTextInput4.textInput.text;
 
-                            if ((url1 !== null) && (url1 !== undefined)
-                                    && (url1 !== "")) {
-                                urlsArray.push(url1)
+                            if ((url1 !== null) && (url1 !== undefined) && (url1 !== "")) {
+                                urlsArray.push(url1);
                             }
 
-                            if ((url2 !== null) && (url2 !== undefined)
-                                    && (url2 !== "")) {
-                                urlsArray.push(url2)
+                            if ((url2 !== null) && (url2 !== undefined) && (url2 !== "")) {
+                                urlsArray.push(url2);
                             }
 
-                            if ((url3 !== null) && (url3 !== undefined)
-                                    && (url3 !== "")) {
-                                urlsArray.push(url3)
+                            if ((url3 !== null) && (url3 !== undefined) && (url3 !== "")) {
+                                urlsArray.push(url3);
                             }
 
-                            if ((url4 !== null) && (url4 !== undefined)
-                                    && (url4 !== "")) {
-                                urlsArray.push(url4)
+                            if ((url4 !== null) && (url4 !== undefined) && (url4 !== "")) {
+                                urlsArray.push(url4);
                             }
 
                             if (urlsArray.length > 0) {
-                                root.isProcessingActive = true
-                                addNewSourcesController.processM3UFiles(
-                                            urlsArray)
+                                root.isProcessingActive = true;
+                                addNewSourcesController.processM3UFiles(urlsArray);
                             }
                         }
                     }
@@ -377,15 +372,13 @@ Item {
                             repeat: true
                             triggeredOnStart: true
                             onTriggered: {
-                                console.log("triggered - delegateRoot.dotIndex = "
-                                            + delegateRoot.dotIndex)
-                                delegateRoot.dotIndex = (delegateRoot.dotIndex + 1) % 4
+                                delegateRoot.dotIndex = (delegateRoot.dotIndex + 1) % 4;
                             }
                             onRunningChanged: {
                                 if (running)
-                                    delegateRoot.dotIndex = 1
+                                    delegateRoot.dotIndex = 1;
                                 else
-                                    delegateRoot.dotIndex = 0
+                                    delegateRoot.dotIndex = 0;
                             }
                         }
 

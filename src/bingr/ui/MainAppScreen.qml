@@ -13,9 +13,43 @@ Item {
     property bool leftNavOpened: false
     property bool showPlayer: false
     property int pendingChannelId: -1
+    property bool pendingRemoveAddChannels: false
 
     property bool leftNavHovered: leftNav.hovered
                                   || openLeftNavBtn.buttonMouseArea.containsMouse
+
+    // Navigate to the Add Channels screen, reusing the existing page instance
+    // if it is still alive (e.g. kept alive while an import is running).
+    function openAddChannelsScreen() {
+        pendingRemoveAddChannels = false;
+        if (!addChannelsScreenLoader.sourceComponent) {
+            addChannelsScreenLoader.sourceComponent = Qt.createComponent("ui.Screens", "AddChannels");
+        }
+        mainStackContainer.currentIndex = 3;
+    }
+
+    // Leave the Add Channels screen. If an import is in progress the page is
+    // kept alive (hidden by the StackLayout) and only destroyed once the
+    // controller reports processing finished.
+    function removeAddChannelsScreen() {
+        if (addChannelsScreenLoader.item && addChannelsScreenLoader.item.importInProgress) {
+            pendingRemoveAddChannels = true;
+        } else {
+            addChannelsScreenLoader.sourceComponent = null;
+        }
+    }
+
+    Connections {
+        target: addChannelsScreenLoader.item ? addChannelsScreenLoader.item.addNewSourcesController : null
+        function onProcessingActiveChanged() {
+            if (root.pendingRemoveAddChannels
+                    && addChannelsScreenLoader.item
+                    && !addChannelsScreenLoader.item.importInProgress) {
+                root.pendingRemoveAddChannels = false;
+                addChannelsScreenLoader.sourceComponent = null;
+            }
+        }
+    }
 
     Timer {
         id: leftNavIdleTimer
@@ -82,7 +116,7 @@ Item {
                 channelsScreenLoader.sourceComponent = null
                 favouritesScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
-                addChannelsScreenLoader.sourceComponent = null
+                root.removeAddChannelsScreen()
 
                 //set home screen
                 var homeScreenComp = Qt.createComponent("ui.Screens", "Home")
@@ -106,7 +140,7 @@ Item {
                 homeScreenLoader.sourceComponent = null
                 channelsScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
-                addChannelsScreenLoader.sourceComponent = null
+                root.removeAddChannelsScreen()
 
                 //set screen
                 var favouritesScreenComp = Qt.createComponent("ui.Screens",
@@ -137,7 +171,7 @@ Item {
                 homeScreenLoader.sourceComponent = null
                 favouritesScreenLoader.sourceComponent = null
                 settingsScreenLoader.sourceComponent = null
-                addChannelsScreenLoader.sourceComponent = null
+                root.removeAddChannelsScreen()
 
                 //set screen
                 var channelsScreenComp = Qt.createComponent("ui.Screens",
@@ -166,9 +200,7 @@ Item {
                 settingsScreenLoader.sourceComponent = null
 
                 //set screen
-                addChannelsScreenLoader.sourceComponent = Qt.createComponent(
-                            "ui.Screens", "AddChannels")
-                mainStackContainer.currentIndex = 3
+                root.openAddChannelsScreen();
             }
         }
 
@@ -182,9 +214,7 @@ Item {
                 settingsScreenLoader.sourceComponent = null
 
                 //set screen
-                addChannelsScreenLoader.sourceComponent = Qt.createComponent(
-                            "ui.Screens", "AddChannels")
-                mainStackContainer.currentIndex = 3
+                root.openAddChannelsScreen();
             }
         }
 
@@ -195,7 +225,7 @@ Item {
                 homeScreenLoader.sourceComponent = null
                 channelsScreenLoader.sourceComponent = null
                 favouritesScreenLoader.sourceComponent = null
-                addChannelsScreenLoader.sourceComponent = null
+                root.removeAddChannelsScreen()
 
                 //set screen
                 settingsScreenLoader.sourceComponent = Qt.createComponent(

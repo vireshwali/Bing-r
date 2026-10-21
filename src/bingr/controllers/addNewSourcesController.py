@@ -7,7 +7,7 @@ import logging
 import traceback
 from pathlib import Path
 
-from PySide6.QtCore import Property, QObject, QUrl, Slot
+from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
 from PySide6.QtQml import QmlElement
 
 from bingr.common.eventBus import appEventBus
@@ -31,18 +31,42 @@ logger = logging.getLogger(__name__)
 
 @QmlElement
 class AddNewSourcesController(QObject):
+    processingActiveChanged = Signal(bool)
+
     def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
         self._sourcesProcessingStatusViewModel = SourcesProcessingStatusViewModel(self)
+        self._processingActive = False
+        self._activeTaskCount = 0
 
     @Property(QObject, constant=True)
     def sourcesProcessingStatusViewModel(self) -> SourcesProcessingStatusViewModel:
         return self._sourcesProcessingStatusViewModel
 
+    @Property(bool, notify=processingActiveChanged)
+    def processingActive(self) -> bool:
+        """True while one or more import tasks are still running."""
+        return self._processingActive
+
+    def _setProcessingActive(self, active: bool) -> None:
+        if self._processingActive != active:
+            self._processingActive = active
+            self.processingActiveChanged.emit(active)
+
     @Slot("QStringList")
     def processM3UFiles(self, fileUrls: list[str]):
+        self._activeTaskCount += 1
+        self._setProcessingActive(True)
         task = asyncio.ensure_future(self._processAll(list(fileUrls)))
-        task.add_done_callback(lambda fut: self._publishReloadChannelsDataEvent())
+        task.add_done_callback(self._onProcessAllDone)
+
+    def _onProcessAllDone(self, task: asyncio.Task[None]) -> None:
+        if not task.cancelled() and (exc := task.exception()) is not None:
+            logger.exception("M3U import task failed", exc_info=exc)
+        self._activeTaskCount = max(0, self._activeTaskCount - 1)
+        if self._activeTaskCount == 0:
+            self._setProcessingActive(False)
+        self._publishReloadChannelsDataEvent()
 
     def _publishReloadChannelsDataEvent(self) -> None:
         """Emit ReloadChannelsDataEvent event after M3U import completes."""
