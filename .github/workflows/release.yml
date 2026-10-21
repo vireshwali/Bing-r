@@ -350,10 +350,46 @@ jobs:
           .venv/bin/ruff check .
           .venv/bin/ruff format --check .
 
+  update-metainfo:
+    name: Update Metainfo
+    needs: [pre-validations, post-validations]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.pre-validations.outputs.branch_name }}
+
+      - name: Update metainfo.xml with new release
+        run: |
+          VERSION="${{ needs.pre-validations.outputs.version }}"
+          TAG="${{ needs.pre-validations.outputs.tag_name }}"
+          DATE=$(date -u +%Y-%m-%d)
+          METAINFO="flatpak/io.github.vireshwali.Bing-r.metainfo.xml"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${TAG}"
+
+          sed -i "/<releases>/a\\    <release version=\"${VERSION}\" date=\"${DATE}\">\n      <description>\n        <p>${RELEASE_URL}</p>\n      </description>\n    </release>" "$METAINFO"
+
+          echo "Updated metainfo.xml:"
+          grep -A 5 '<releases>' "$METAINFO"
+
+      - name: Commit and push
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git add flatpak/io.github.vireshwali.Bing-r.metainfo.xml
+          if git diff --cached --quiet; then
+            echo "Metainfo unchanged — skipping commit"
+          else
+            git commit -m "Release ${{ needs.pre-validations.outputs.tag_name }}: update metainfo"
+            git pull --rebase origin "${{ needs.pre-validations.outputs.branch_name }}"
+            git push
+          fi
+
   tag-and-release:
     name: Tag and Release
-    needs: [pre-validations, post-validations]
-    #if: ${{ false }} # disabled for now — remove this line to enable
+    needs: [pre-validations, post-validations, update-metainfo]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -368,6 +404,7 @@ jobs:
         with:
           tag_name: "${{ needs.pre-validations.outputs.tag_name }}"
           name: "${{ needs.pre-validations.outputs.release_name }}"
+          target_commitish: "${{ needs.pre-validations.outputs.branch_name }}"
           generate_release_notes: true
           draft: false
           prerelease: false
@@ -439,22 +476,9 @@ jobs:
           echo "Updated manifest:"
           grep -E '^\s+(tag|commit):' "$MANIFEST"
 
-      - name: Update metainfo.xml with new release
-        run: |
-          VERSION="${{ needs.pre-validations.outputs.version }}"
-          TAG="${{ needs.pre-validations.outputs.tag_name }}"
-          DATE=$(date -u +%Y-%m-%d)
-          METAINFO="flatpak/io.github.vireshwali.Bing-r.metainfo.xml"
-          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${TAG}"
-
-          sed -i "/<releases>/a\\    <release version=\"${VERSION}\" date=\"${DATE}\">\n      <description>\n        <p>${RELEASE_URL}</p>\n      </description>\n    </release>" "$METAINFO"
-
-          echo "Updated metainfo.xml:"
-          grep -A 5 '<releases>' "$METAINFO"
-
       - name: Commit and push
         run: |
-          git add flatpak/io.github.vireshwali.Bing-r.yml flatpak/io.github.vireshwali.Bing-r.metainfo.xml
+          git add flatpak/io.github.vireshwali.Bing-r.yml
           if git diff --cached --quiet; then
             echo "Flatpak files unchanged — skipping commit"
           else
@@ -531,7 +555,8 @@ jobs:
             if grep -q "version=\"${VERSION}\"" "$METAINFO"; then
               echo "Metainfo version $VERSION — OK"
             else
-              echo "::warning::Metainfo does not contain version $VERSION"
+              echo "::error::Metainfo does not contain version $VERSION"
+              ERRORS=$((ERRORS + 1))
             fi
           else
             echo "::error::Metainfo XML not found"
